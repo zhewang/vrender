@@ -118,6 +118,10 @@ void keyboardEvent(unsigned char key, int x, int y)
 
 void loadConfig(const char* fileName, vector<Task> &tasks) {
     std::ifstream infile(fileName);
+    if(!infile.is_open()){
+        std::cerr << "Configure file not exits." << std::endl;
+        exit(0);
+    }
     string word;
     Task current, ZERO;
     bool first = true;
@@ -142,6 +146,10 @@ void loadConfig(const char* fileName, vector<Task> &tasks) {
 
 int main(int argc, char* argv[])
 {
+    if(argc != 3 || strcmp(argv[1], "-c")) {
+        std::cerr << "Usage: " << argv[0] << " -c CONFIG_FILE" << std::endl;
+        exit(0);
+    }
 
     glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_3_2_CORE_PROFILE | GLUT_RGBA );
@@ -158,7 +166,7 @@ int main(int argc, char* argv[])
 	}
 
     vector<Task> tasks;
-    loadConfig("config.txt", tasks);
+    loadConfig(argv[2], tasks);
 
     vector<Task>::iterator it = tasks.begin();
     while(it != tasks.end()) {
