@@ -35,6 +35,9 @@ void init(void)
     GLuint vao;
     GLuint vao_size;
     int status = loadObjFile("./objFiles/axis.obj", bounds, &vao, &vao_size);
+    if(status == 0) {
+        return;
+    }
 
     VAOs.push_back(vao);
     VAO_Sizes.push_back(vao_size);
