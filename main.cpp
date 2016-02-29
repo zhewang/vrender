@@ -40,26 +40,27 @@ void init(void)
     ////////////////////////////////////////////////////////////////////
     // Load vertices
     ////////////////////////////////////////////////////////////////////
-	GLfloat vertices[6][2] = {
-		{ -0.90f, -0.9f },	// Triangle 1
-		{  0.85f, -0.9f },
-		{ -0.90f,  0.85f },
-		{ 0.90f, -0.85f },	// Triangle 2
-		{ 0.90f,  0.90f },
-		{ -0.85f, 0.90f },
-	};
+    GLfloat vertices[6][2] = {
+        { -0.90f, -0.9f },	// Triangle 1
+        {  0.85f, -0.9f },
+        { -0.90f,  0.85f },
+        { 0.90f, -0.85f },	// Triangle 2
+        { 0.90f,  0.90f },
+        { -0.85f, 0.90f },
+    };
     VAO_Sizes.push_back(6);
+
+    glBindVertexArray(vao);
+    glBindBuffer( GL_ARRAY_BUFFER, buf);
+    glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW );
+    glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+    glEnableVertexAttribArray( 0 );
+
     //float bounds[6] = {0};
     //GLuint vao_size;
     //loadObjFile("./objFiles/axis.obj", bounds, &vao, &vao_size);
     //VAO_Sizes.push_back(vao_size);
 
-    glBindVertexArray(vao);
-
-    glBindBuffer( GL_ARRAY_BUFFER, buf);
-    glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW );
-    glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray( 0 );
 
     ////////////////////////////////////////////////////////////////////
     // Load shaders
