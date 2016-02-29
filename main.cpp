@@ -32,10 +32,8 @@ typedef struct {
 void init(void)
 {
     GLuint vao;
-    GLuint buf;
 	glGenVertexArrays(1, &vao);
     VAOs.push_back(vao);
-	glGenBuffers(1, &buf);
 
     ////////////////////////////////////////////////////////////////////
     // Load vertices
@@ -51,6 +49,8 @@ void init(void)
     VAO_Sizes.push_back(6);
 
     glBindVertexArray(vao);
+    GLuint buf;
+	glGenBuffers(1, &buf);
     glBindBuffer( GL_ARRAY_BUFFER, buf);
     glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW );
     glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
