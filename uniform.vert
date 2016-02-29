@@ -14,6 +14,7 @@ main()
 {
     vec3 L = normalize(vec3(0.3, 0.5, 0.5));
     vec3 N = normalize(vertexNormal);
-    Color = ambientColor+dot(N, L)*diffuseColor;
+    float NdotL = min(max(0, dot(N, L)), 1); // make sure NdotL is in [0,1]
+    Color = ambientColor + NdotL * diffuseColor;
     gl_Position = trans*vec4(vertexPosition, 1.0);
 }
