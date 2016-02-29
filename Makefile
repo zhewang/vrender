@@ -12,7 +12,7 @@ LIBS = -framework OpenGL -framework GLUT -L$(LIBDIR) -lglew
 SRCS = main.cpp LoadShaders.cpp loadObj.cpp
 OBJS = main.o LoadShaders.o loadObj.o
 
-viewer: $(OBJS) LoadShaders.h
+viewer: $(OBJS) LoadShaders.h loadObj.h
 	g++ -g -o viewer $(OBJS) $(LIBS)
 
 clean:
