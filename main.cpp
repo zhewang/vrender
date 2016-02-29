@@ -8,12 +8,12 @@
 
 using namespace std;
 
-enum VAO_IDs {TwoTriangles, ColorTriangle, Ellipse, Epitrochoid, NumVAOs};
-enum Buffer_IDs {TwoTriBuf, ColorTriBuf_Loc, ColorTriBuf_Color, EllipseBuf, EpiBuf, NumBufs};
-GLuint VAOs[NumVAOs];
-GLuint Buffers[NumBufs];
 
-GLuint uniformShader, colorShader;
+vector<GLuint> VAOs;
+GLuint uniformShader;
+
+// Default Color
+float customColor[3] = {0.0f, 0.0f, 1.0f};
 
 typedef struct {
     std::string filepath = "null";
@@ -25,14 +25,13 @@ typedef struct {
 //  init
 ////////////////////////////////////////////////////////////////////
 
-void init (void )
+void init(void)
 {
-
-    ////////////////////////////////////////////////////////////////////
-    // Global initial
-    ////////////////////////////////////////////////////////////////////
-	glGenVertexArrays( NumVAOs, VAOs );
-	glGenBuffers( NumBufs, Buffers);
+    GLuint vao;
+    GLuint buf;
+	glGenVertexArrays(1, &vao);
+    VAOs.push_back(vao);
+	glGenBuffers(1, &buf);
 
     ////////////////////////////////////////////////////////////////////
     // Two Triangles
@@ -46,9 +45,9 @@ void init (void )
 		{ -0.85f, 0.90f },
 	};
 
-	glBindVertexArray( VAOs[TwoTriangles] );
+	glBindVertexArray(vao);
 
-	glBindBuffer( GL_ARRAY_BUFFER, Buffers[TwoTriBuf]);
+	glBindBuffer( GL_ARRAY_BUFFER, buf);
 	glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW );
 	glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
 	glEnableVertexAttribArray( 0 );
@@ -64,18 +63,19 @@ void init (void )
 	};
 
 	uniformShader = LoadShaders( shaders );
+
+    GLint colorLoc = glGetUniformLocation(uniformShader, "vColor");
+    glProgramUniform3fv(uniformShader, colorLoc, 1, customColor);
+
+    glUseProgram(uniformShader);
 }
 
 void renderDisplay()
 {
 	glClear( GL_COLOR_BUFFER_BIT );
 
-    GLint colorLoc = glGetUniformLocation(uniformShader, "vColor");
-
-    //if(TWOTRI_ON == true) drawTwoTriangles();
-    //if(COLORTRI_ON == true) drawColorTriangle();
-    //if(ELLIPSE_ON == true) drawEllipse();
-    //if(EPITROCHOID_ON == true) drawEpitrochoid();
+    glBindVertexArray(VAOs[0]);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	glFlush();
 }
@@ -102,8 +102,8 @@ void keyboardEvent(unsigned char key, int x, int y)
     switch (key)
     {
         //case 'c': changeColor(); break;
-        //case 's': displaySolidSurface(); break;
-        //case 'w': displayWirefram(); break;
+        case 's': displaySolidSurface(); break;
+        case 'w': displayWirefram(); break;
         //case 'g': initEllipse(); break;
         //case 'e': initEpitrochoid(); break;
         //case 'x': TWOTRI_ON = !TWOTRI_ON; break;
