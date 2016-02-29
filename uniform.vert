@@ -12,6 +12,8 @@ out vec3 Color;
 void
 main()
 {
-    Color = ambientColor+diffuseColor;
+    vec3 L = normalize(vec3(0.3, 0.5, 0.5));
+    vec3 N = normalize(vertexNormal);
+    Color = ambientColor+dot(N, L)*diffuseColor;
     gl_Position = trans*vec4(vertexPosition, 1.0);
 }
