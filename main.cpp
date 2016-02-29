@@ -31,36 +31,13 @@ typedef struct {
 
 void init(void)
 {
+    float bounds[6] = {0};
     GLuint vao;
-	glGenVertexArrays(1, &vao);
+    GLuint vao_size;
+    int status = loadObjFile("./objFiles/axis.obj", bounds, &vao, &vao_size);
+
     VAOs.push_back(vao);
-
-    ////////////////////////////////////////////////////////////////////
-    // Load vertices
-    ////////////////////////////////////////////////////////////////////
-    GLfloat vertices[6][2] = {
-        { -0.90f, -0.9f },	// Triangle 1
-        {  0.85f, -0.9f },
-        { -0.90f,  0.85f },
-        { 0.90f, -0.85f },	// Triangle 2
-        { 0.90f,  0.90f },
-        { -0.85f, 0.90f },
-    };
-    VAO_Sizes.push_back(6);
-
-    glBindVertexArray(vao);
-    GLuint buf;
-	glGenBuffers(1, &buf);
-    glBindBuffer( GL_ARRAY_BUFFER, buf);
-    glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW );
-    glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
-    glEnableVertexAttribArray( 0 );
-
-    //float bounds[6] = {0};
-    //GLuint vao_size;
-    //loadObjFile("./objFiles/axis.obj", bounds, &vao, &vao_size);
-    //VAO_Sizes.push_back(vao_size);
-
+    VAO_Sizes.push_back(vao_size);
 
     ////////////////////////////////////////////////////////////////////
     // Load shaders
@@ -78,7 +55,7 @@ void init(void)
     mat4 Projection = glm::perspective(glm::radians(45.0f), 1.0f , 0.1f, 100.0f);
 
     glm::mat4 View = glm::lookAt(
-            glm::vec3(4,3,3),
+            glm::vec3(1.5, 1.5, 1.5),
             glm::vec3(0,0,0),
             glm::vec3(0,1,0)
             );
@@ -179,14 +156,14 @@ int main(int argc, char* argv[])
     vector<Task> tasks;
     loadConfig(argv[2], tasks);
 
-    vector<Task>::iterator it = tasks.begin();
-    while(it != tasks.end()) {
-        cout << "obj " << it->filepath << endl;
-        cout << "rx " << it->rx << " ry " << it->ry << " rz " << it->rz << endl;
-        cout << "s " << it->s[0] << " " << it->s[1] << " " << it->s[2] << endl;
-        cout << "t " << it->t[0] << " " << it->t[1] << " " << it->t[2] << endl;
-        it ++;
-    }
+    //vector<Task>::iterator it = tasks.begin();
+    //while(it != tasks.end()) {
+        //cout << "obj " << it->filepath << endl;
+        //cout << "rx " << it->rx << " ry " << it->ry << " rz " << it->rz << endl;
+        //cout << "s " << it->s[0] << " " << it->s[1] << " " << it->s[2] << endl;
+        //cout << "t " << it->t[0] << " " << it->t[1] << " " << it->t[2] << endl;
+        //it ++;
+    //}
 
     // Init OpenGL
     glutInit( &argc, argv );
