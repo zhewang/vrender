@@ -146,11 +146,26 @@ void loadConfig(const char* fileName, vector<Task> &tasks) {
 
 int main(int argc, char* argv[])
 {
+    // Parse arguments
     if(argc != 3 || strcmp(argv[1], "-c")) {
         std::cerr << "Usage: " << argv[0] << " -c CONFIG_FILE" << std::endl;
         exit(0);
     }
 
+    // Load configure file
+    vector<Task> tasks;
+    loadConfig(argv[2], tasks);
+
+    vector<Task>::iterator it = tasks.begin();
+    while(it != tasks.end()) {
+        cout << "obj " << it->filepath << endl;
+        cout << "rx " << it->rx << " ry " << it->ry << " rz " << it->rz << endl;
+        cout << "s " << it->s[0] << " " << it->s[1] << " " << it->s[2] << endl;
+        cout << "t " << it->t[0] << " " << it->t[1] << " " << it->t[2] << endl;
+        it ++;
+    }
+
+    // Init OpenGL
     glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_3_2_CORE_PROFILE | GLUT_RGBA );
 	glutInitWindowSize( 512, 512 );
@@ -165,24 +180,11 @@ int main(int argc, char* argv[])
 		exit (EXIT_FAILURE );
 	}
 
-    vector<Task> tasks;
-    loadConfig(argv[2], tasks);
+    init();
+    glutDisplayFunc(renderDisplay);
+    glutKeyboardFunc(keyboardEvent);
 
-    vector<Task>::iterator it = tasks.begin();
-    while(it != tasks.end()) {
-        cout << "obj " << it->filepath << endl;
-        cout << "rx " << it->rx << " ry " << it->ry << " rz " << it->rz << endl;
-        cout << "s " << it->s[0] << " " << it->s[1] << " " << it->s[2] << endl;
-        cout << "t " << it->t[0] << " " << it->t[1] << " " << it->t[2] << endl;
-        it ++;
-    }
-
-
-    //init();
-    //glutDisplayFunc(renderDisplay);
-    //glutKeyboardFunc(keyboardEvent);
-
-	//glutMainLoop();
+    glutMainLoop();
 
 	return 0;
 }
