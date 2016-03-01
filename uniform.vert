@@ -1,6 +1,8 @@
 #version 330 core
 
-uniform mat4 trans;
+uniform mat4 View;
+uniform mat4 Model;
+uniform mat4 Project;
 
 layout(location = 0) in vec3 vertexPosition;
 layout(location = 1) in vec3 vertexNormal;
@@ -12,9 +14,13 @@ out vec3 Color;
 void
 main()
 {
-    vec3 L = normalize(vec3(0.3, 0.5, 0.5));
-    vec3 N = normalize(vertexNormal);
+    vec3 L = normalize(vec3(0.1, 0.5, 1.0));
+
+    vec3 newNormal = mat3(Model)*vertexNormal;
+    vec3 N = normalize(newNormal);
+
     float NdotL = min(max(0, dot(N, L)), 1); // make sure NdotL is in [0,1]
     Color = ambientColor + NdotL * diffuseColor;
-    gl_Position = trans*vec4(vertexPosition, 1.0);
+
+    gl_Position = Project*Model*View*vec4(vertexPosition, 1.0);
 }
