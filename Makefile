@@ -1,5 +1,5 @@
 CC = g++
-CFLAGS = -D_DEBUG
+CFLAGS = -D_DEBUG -I../glm
 CPPFLAGS = -g
 
 INCDIR = /usr/local/include
