@@ -17,7 +17,11 @@ using namespace glm;
 
 vector<GLuint> VAOs;
 vector<GLuint> VAO_Sizes;
+vector<glm::mat4> ModelMats;
 GLuint uniformShader;
+
+glm::mat4 v; // View matrix
+glm::mat4 p; // Projection matrix
 
 typedef struct {
     std::string filepath = "null";
@@ -25,12 +29,11 @@ typedef struct {
     double s[3] = {0.0}, t[3] = {0.0};
 } Task;
 
-////////////////////////////////////////////////////////////////////
-//  init
-////////////////////////////////////////////////////////////////////
-
 void init(void)
 {
+    ////////////////////////////////////////////////////////////////////
+    // load each obj and calculate model matrix
+    ////////////////////////////////////////////////////////////////////
     float bounds[6] = {0};
     GLuint vao;
     GLuint vao_size;
@@ -41,6 +44,30 @@ void init(void)
 
     VAOs.push_back(vao);
     VAO_Sizes.push_back(vao_size);
+
+    glm::mat4 m = glm::scale(
+            glm::mat4(1.0f),
+            glm::vec3(1.0f));
+
+    ModelMats.push_back(m);
+
+
+    ////////////////////////////////////////////////////////////////////
+    // Calculate initial projection and view
+    ////////////////////////////////////////////////////////////////////
+    p = glm::perspective(glm::radians(45.0f), 1.0f , 0.5f, 100.0f);
+
+    float midpoints[3] = {
+        (bounds[0]+bounds[1])/2,
+        (bounds[2]+bounds[3])/2,
+        (bounds[4]+bounds[5])/2
+    };
+
+    v = glm::lookAt(
+            glm::vec3(3*bounds[1], 3*bounds[3], 3*bounds[5]), // eye location
+            glm::vec3(midpoints[0], midpoints[1], midpoints[2]), // center
+            glm::vec3(0, 0, 1)  // up
+            );
 
     ////////////////////////////////////////////////////////////////////
     // Load shaders
@@ -54,46 +81,6 @@ void init(void)
 
 	uniformShader = LoadShaders( shaders );
 
-    ////////////////////////////////
-    glm::mat4 p = glm::perspective(glm::radians(45.0f), 1.0f , 0.5f, 100.0f);
-
-    float ranges[3] = {
-        bounds[1]-bounds[0],
-        bounds[3]-bounds[2],
-        bounds[5]-bounds[4]
-    };
-
-    float midpoints[3] = {
-        (bounds[0]+bounds[1])/2,
-        (bounds[2]+bounds[3])/2,
-        (bounds[4]+bounds[5])/2
-    };
-
-    for(int i = 0; i < 6; i ++) {
-        cout << bounds[i] << ", ";
-    }
-    cout << endl;
-
-    glm::mat4 v = glm::lookAt(
-            glm::vec3(3*bounds[1], 3*bounds[3], 3*bounds[5]), // eye location
-            glm::vec3(midpoints[0], midpoints[1], midpoints[2]), // center
-            glm::vec3(0, 0, 1)  // up
-            );
-
-    glm::mat4 m = glm::scale(
-            glm::mat4(1.0f),
-            glm::vec3(1.0f));
-
-    ////////////////////////////////
-
-    GLint viewLoc = glGetUniformLocation(uniformShader, "View");
-    GLint modelLoc = glGetUniformLocation(uniformShader, "Model");
-    GLint projectLoc = glGetUniformLocation(uniformShader, "Project");
-
-    glProgramUniformMatrix4fv(uniformShader, viewLoc, 1, false,  glm::value_ptr(v));
-    glProgramUniformMatrix4fv(uniformShader, modelLoc, 1, false,  glm::value_ptr(m));
-    glProgramUniformMatrix4fv(uniformShader, projectLoc, 1, false,  glm::value_ptr(p));
-
     glUseProgram(uniformShader);
 }
 
@@ -102,8 +89,21 @@ void renderDisplay()
 	glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
 
+    // Update Projection and View
+
+    ////////////////////////////////////////////////////
+    // Send uniform variables to shader
+    GLint modelLoc = glGetUniformLocation(uniformShader, "Model");
+    GLint viewLoc = glGetUniformLocation(uniformShader, "View");
+    GLint projectLoc = glGetUniformLocation(uniformShader, "Project");
+
+    glProgramUniformMatrix4fv(uniformShader, modelLoc, 1, false,  glm::value_ptr(ModelMats[0]));
+    glProgramUniformMatrix4fv(uniformShader, viewLoc, 1, false,  glm::value_ptr(v));
+    glProgramUniformMatrix4fv(uniformShader, projectLoc, 1, false,  glm::value_ptr(p));
+
     glBindVertexArray(VAOs[0]);
     glDrawArrays(GL_TRIANGLES, 0, VAO_Sizes[0]);
+    ////////////////////////////////////////////////////
 
 	glFlush();
 }
