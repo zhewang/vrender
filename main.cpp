@@ -30,6 +30,8 @@ glm::mat4 p; // Projection matrix
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
 
+float aspect = 1.0f;
+
 bool SOLID = true;
 
 typedef struct {
@@ -141,7 +143,7 @@ void init(std::vector<Task> tasks) {
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
     ////////////////////////////////////////////////////////////////////
-    p = glm::perspective(glm::radians(45.0f), 1.0f , 0.5f, 100.0f);
+    p = glm::perspective(glm::radians(45.0f), aspect , 0.5f, 100.0f);
 
     float midpoints[3] = {
         (SceneBounds[0]+SceneBounds[1])/2,
@@ -325,7 +327,7 @@ void keyboardEvent(unsigned char key, int x, int y)
         default:
             moveCamera(key); break;
     }
-    renderDisplay();
+    glutPostRedisplay();
 }
 
 void loadConfig(const char* fileName, vector<Task> &tasks) {
@@ -369,6 +371,11 @@ void loadConfig(const char* fileName, vector<Task> &tasks) {
     }
 }
 
+void Reshape(int w, int h) {
+    glViewport(0, 0, w, h);
+    p = glm::perspective(glm::radians(45.0f), (float)w*1.0f/h, 0.5f, 100.0f);
+    glutPostRedisplay();
+}
 
 int main(int argc, char* argv[])
 {
@@ -393,6 +400,8 @@ int main(int argc, char* argv[])
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
+
+    glutReshapeFunc(Reshape);
 
 	if ( glewInit() )
 	{
