@@ -240,16 +240,10 @@ void keyboardEvent(unsigned char key, int x, int y)
                 SOLID = !SOLID;
             }
             break;
-        case 'w': case 's': case 'a': case 'd': case 'r': case 't':
-            moveCamera(key); break;
-        //case 'g': initEllipse(); break;
-        //case 'e': initEpitrochoid(); break;
-        //case 'x': TWOTRI_ON = !TWOTRI_ON; break;
-        //case 'y': COLORTRI_ON = !COLORTRI_ON; break;
-        //case 'z': ELLIPSE_ON = !ELLIPSE_ON; break;
-        //case 'a': EPITROCHOID_ON = !EPITROCHOID_ON; break;
         case 'q': exit(0); break;
         case 27: exit(0); break;
+        default:
+            moveCamera(key); break;
     }
     renderDisplay();
 }
