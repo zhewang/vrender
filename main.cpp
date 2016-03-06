@@ -117,7 +117,7 @@ void init(std::vector<Task> tasks) {
     };
 
     v = glm::lookAt(
-            glm::vec3(3*bounds[1], 3*bounds[3], 3*bounds[5]), // eye location
+            glm::vec3(3*bounds[1], 3*bounds[3], bounds[5]), // eye location
             glm::vec3(midpoints[0], midpoints[1], midpoints[2]), // center
             glm::vec3(0, 0, 1)  // up
             );
@@ -140,6 +140,7 @@ void init(std::vector<Task> tasks) {
 
 void renderDisplay()
 {
+    glClearColor(0, 43/255.0, 54/255.0, 1);
 	glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
 
