@@ -292,6 +292,14 @@ void moveCamera(char cmd)
                 center = vec3(x,y,z);
                 break;
             }
+        case 'l':
+            {
+                cout << "Please enter x, y, z for view up vector:" << endl;
+                float x, y, z;
+                cin >> x >> y >> z;
+                up = glm::normalize(vec3(x,y,z));
+                break;
+            }
     }
 }
 
