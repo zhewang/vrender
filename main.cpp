@@ -262,10 +262,16 @@ void moveCamera(char cmd)
             }
         case 'q':
             {
+                vec3 gaze = center - eye;
+                gaze = glm::rotate(gaze, glm::radians(1.0f), right);
+                center = gaze + eye;
                 break;
             }
         case 'e':
             {
+                vec3 gaze = center - eye;
+                gaze = glm::rotate(gaze, glm::radians(-1.0f), right);
+                center = gaze + eye;
                 break;
             }
         case 'c':
