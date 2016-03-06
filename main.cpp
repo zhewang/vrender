@@ -373,7 +373,7 @@ void loadConfig(const char* fileName, vector<Task> &tasks) {
 
 void Reshape(int w, int h) {
     glViewport(0, 0, w, h);
-    p = glm::perspective(glm::radians(45.0f), (float)w*1.0f/h, 0.5f, 100.0f);
+    p = glm::perspective(45.0f, (float)w*1.0f/h, 0.5f, 100.0f);
     glutPostRedisplay();
 }
 
