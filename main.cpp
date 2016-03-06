@@ -21,9 +21,13 @@ vector<GLuint> VAO_Sizes;
 vector<glm::mat4> Models;
 GLuint uniformShader;
 
-glm::mat4 v_default; // View matrix
+float SceneBounds[6];
+
 glm::mat4 v; // View matrix
 glm::mat4 p; // Projection matrix
+
+glm::vec3 eye, center, up;
+glm::vec3 eye_default, center_default, up_default;
 
 bool SOLID = true;
 
@@ -95,10 +99,11 @@ void initObjModel(Task t, float bounds[6])
 
 void init(std::vector<Task> tasks) {
     float MIN = -999999999, MAX = 999999999;
-    float bounds[6] = {MAX, MIN, MAX, MIN, MAX, MIN};
+    SceneBounds[0] = SceneBounds[2] = SceneBounds[4] = MAX;
+    SceneBounds[1] = SceneBounds[3] = SceneBounds[5] = MIN;
     vector<Task>::iterator it = tasks.begin();
     while(it != tasks.end()) {
-        initObjModel(*it, bounds);
+        initObjModel(*it, SceneBounds);
         it ++;
     }
 
@@ -108,17 +113,16 @@ void init(std::vector<Task> tasks) {
     p = glm::perspective(glm::radians(45.0f), 1.0f , 0.5f, 100.0f);
 
     float midpoints[3] = {
-        (bounds[0]+bounds[1])/2,
-        (bounds[2]+bounds[3])/2,
-        (bounds[4]+bounds[5])/2
+        (SceneBounds[0]+SceneBounds[1])/2,
+        (SceneBounds[2]+SceneBounds[3])/2,
+        (SceneBounds[4]+SceneBounds[5])/2
     };
 
-    v = glm::lookAt(
-            glm::vec3(3*bounds[1], 3*bounds[3], bounds[5]), // eye location
-            glm::vec3(midpoints[0], midpoints[1], midpoints[2]), // center
-            glm::vec3(0, 0, 1)  // up
-            );
-    v_default = v;
+    eye_default = eye = glm::vec3(3*SceneBounds[1], 3*SceneBounds[3], SceneBounds[5]);
+    center_default = center = glm::vec3(midpoints[0], midpoints[1], midpoints[2]);
+    up_default = up = glm::vec3(0, 0, 1);
+
+    v = glm::lookAt(eye, center, up);
 
     ////////////////////////////////////////////////////////////////////
     // Load shaders
@@ -146,11 +150,8 @@ void renderDisplay()
     GLint viewLoc = glGetUniformLocation(uniformShader, "View");
     GLint projectLoc = glGetUniformLocation(uniformShader, "Project");
 
-    // Update Projection and View
-
-    ////////////////////////////////////////////////////
     // Send View and Projection matices to shader
-
+    v = glm::lookAt(eye, center, up);
     glProgramUniformMatrix4fv(uniformShader, viewLoc, 1, false,  glm::value_ptr(v));
     glProgramUniformMatrix4fv(uniformShader, projectLoc, 1, false,  glm::value_ptr(p));
 
@@ -181,11 +182,28 @@ void displayWirefram()
     glutPostRedisplay();
 }
 
+void moveCamera(char cmd)
+{
+    switch(cmd)
+    {
+        case 'w':
+            eye -= eye*0.1f;
+            break;
+        case 's':
+            eye += eye*0.1f;
+            break;
+    }
+}
+
 void keyboardEvent(unsigned char key, int x, int y)
 {
     switch (key)
     {
-        case 'p': v = v_default; break;
+        case 'p':
+            eye = eye_default;
+            center = center_default;
+            up = up_default;
+            break;
         case 'o':
             if(SOLID) {
                 displayWirefram();
@@ -194,8 +212,9 @@ void keyboardEvent(unsigned char key, int x, int y)
                 displaySolidSurface();
                 SOLID = !SOLID;
             }
-            return;
-        case 'w': displayWirefram(); break;
+            break;
+        case 'w': case 's':
+            moveCamera(key); break;
         //case 'g': initEllipse(); break;
         //case 'e': initEpitrochoid(); break;
         //case 'x': TWOTRI_ON = !TWOTRI_ON; break;
