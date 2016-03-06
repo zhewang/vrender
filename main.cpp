@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <limits>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -24,9 +25,15 @@ glm::mat4 v; // View matrix
 glm::mat4 p; // Projection matrix
 
 typedef struct {
+    char op = 'N'; // r, s, t
+    float x = 0.0;
+    float y = 0.0;
+    float z = 0.0;
+} Operation;
+
+typedef struct {
     std::string filepath = "null";
-    double rx = 0.0, ry = 0.0, rz = 0.0;
-    double s[3] = {1.0, 1.0, 1.0}, t[3] = {0.0, 0.0, 0.0};
+    std::vector<Operation> operations;
 } Task;
 
 
@@ -51,16 +58,36 @@ void initObjModel(Task t, float bounds[6])
 
     // Apply transformation
     glm::mat4 m = glm::mat4(1.0f);
-    m = glm::scale(m, glm::vec3((float)t.s[0], (float)t.s[1], (float)t.s[2]));
+    for(int i = 0; i < t.operations.size(); i ++) {
+        Operation o = t.operations[i];
+        if(o.op == 's') {
+            //std::cout << o.x <<", "<<o.y<<", "<<o.z<<endl;
+            m = glm::scale(m, glm::vec3(o.x, o.y, o.z));
+        }
+    }
 
     Models.push_back(m);
 
     // TODO update bounds
+    //cout << bounds[0] << ", " << bounds[2] << ", " << bounds[3] << endl;
+    glm::vec4 min = glm::vec4(bounds[0], bounds[2], bounds[4], 1);
+    glm::vec4 max = glm::vec4(bounds[1], bounds[3], bounds[5], 1);
+    min = m*min;
+    max = m*max;
+    bounds[0] = min[0] < bounds[0] ? min[0]:bounds[0];
+    bounds[2] = min[1] < bounds[2] ? min[1]:bounds[2];
+    bounds[4] = min[2] < bounds[4] ? min[2]:bounds[4];
+    //cout << bounds[0] << ", " << bounds[2] << ", " << bounds[3] << endl;
+    bounds[1] = max[0] > bounds[1] ? max[0]:bounds[1];
+    bounds[3] = max[1] > bounds[3] ? max[1]:bounds[3];
+    bounds[5] = max[2] > bounds[5] ? max[2]:bounds[5];
+
 }
 
 
 void init(std::vector<Task> tasks) {
-    float bounds[6] = {0};
+    float MIN = -999999999, MAX = 999999999;
+    float bounds[6] = {MAX, MIN, MAX, MIN, MAX, MIN};
     vector<Task>::iterator it = tasks.begin();
     while(it != tasks.end()) {
         //cout << "obj " << it->filepath << endl;
@@ -175,24 +202,38 @@ void loadConfig(const char* fileName, vector<Task> &tasks) {
         exit(0);
     }
     string word;
-    Task current, ZERO;
     bool first = true;
     while (infile >> word)
     {
         if(word == "obj") {
-            if( first == false) tasks.push_back(current);
-            current = ZERO;
-            infile >> current.filepath;
-            first = false;
+            tasks.push_back(Task());
+            infile >> tasks.back().filepath;
         }
-        else if(word == "rx") { infile >> current.rx; }
-        else if(word == "ry") { infile >> current.ry; }
-        else if(word == "rz") { infile >> current.rz; }
-        else if(word == "s") { infile >> current.s[0] >> current.s[1] >> current.s[2];}
-        else if(word == "t") { infile >> current.t[0] >> current.t[1] >> current.t[2];}
+        else {
+            Operation o;
+            if(word == "rx") {
+                o.op = 'r';
+                infile >> o.x;
+            }
+            else if(word == "ry") {
+                o.op = 'r';
+                infile >> o.y;
+            }
+            else if(word == "rz") {
+                o.op = 'r';
+                infile >> o.z;
+            }
+            else if(word == "s") {
+                o.op = 's';
+                infile >> o.x >> o.y >> o.z;
+            }
+            else if(word == "t") {
+                o.op = 't';
+                infile >> o.x >> o.y >> o.z;
+            }
+            tasks.back().operations.push_back(o);
+        }
     }
-    tasks.push_back(current);
-
 }
 
 
