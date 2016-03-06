@@ -63,13 +63,20 @@ void initObjModel(Task t, float bounds[6])
         if(o.op == 's') {
             //std::cout << o.x <<", "<<o.y<<", "<<o.z<<endl;
             m = glm::scale(m, glm::vec3(o.x, o.y, o.z));
+        } else if(o.op == 't') {
+            m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
+        } else if(o.op == 'x') {
+            m = glm::rotate(m, o.x, glm::vec3(1, 0, 0));
+        } else if(o.op == 'y') {
+            m = glm::rotate(m, o.y, glm::vec3(0, 1, 0));
+        } else if(o.op == 'z') {
+            m = glm::rotate(m, o.z, glm::vec3(0, 0, 1));
         }
     }
 
     Models.push_back(m);
 
-    // TODO update bounds
-    //cout << bounds[0] << ", " << bounds[2] << ", " << bounds[3] << endl;
+    // Update bounds
     glm::vec4 min = glm::vec4(bounds[0], bounds[2], bounds[4], 1);
     glm::vec4 max = glm::vec4(bounds[1], bounds[3], bounds[5], 1);
     min = m*min;
@@ -77,7 +84,6 @@ void initObjModel(Task t, float bounds[6])
     bounds[0] = min[0] < bounds[0] ? min[0]:bounds[0];
     bounds[2] = min[1] < bounds[2] ? min[1]:bounds[2];
     bounds[4] = min[2] < bounds[4] ? min[2]:bounds[4];
-    //cout << bounds[0] << ", " << bounds[2] << ", " << bounds[3] << endl;
     bounds[1] = max[0] > bounds[1] ? max[0]:bounds[1];
     bounds[3] = max[1] > bounds[3] ? max[1]:bounds[3];
     bounds[5] = max[2] > bounds[5] ? max[2]:bounds[5];
@@ -212,15 +218,15 @@ void loadConfig(const char* fileName, vector<Task> &tasks) {
         else {
             Operation o;
             if(word == "rx") {
-                o.op = 'r';
+                o.op = 'x';
                 infile >> o.x;
             }
             else if(word == "ry") {
-                o.op = 'r';
+                o.op = 'y';
                 infile >> o.y;
             }
             else if(word == "rz") {
-                o.op = 'r';
+                o.op = 'z';
                 infile >> o.z;
             }
             else if(word == "s") {
