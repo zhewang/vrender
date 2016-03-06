@@ -221,13 +221,19 @@ void moveCamera(char cmd)
     switch(cmd)
     {
         case 'w':
-            eye += glm::normalize(center_default-eye_default)*speed;
-            center += glm::normalize(center_default-eye_default)*speed;
-            break;
+            {
+                vec3 change = glm::normalize(center-eye)*speed;
+                eye += change;
+                center += change;
+                break;
+            }
         case 's':
-            eye -= glm::normalize(center_default-eye_default)*speed;
-            center -= glm::normalize(center_default-eye_default)*speed;
-            break;
+            {
+                vec3 change = glm::normalize(center-eye)*speed;
+                eye -= change;
+                center -= change;
+                break;
+            }
         case 'a':
             {
                 eye += right*speed;
@@ -268,6 +274,14 @@ void moveCamera(char cmd)
         case 'v':
             {
                 up = glm::rotate(up, -1.0f, glm::cross(center-eye, right));
+                break;
+            }
+        case 'j':
+            {
+                cout << "Please enter x, y, z for camera position:" << endl;
+                float x, y, z;
+                cin >> x >> y >> z;
+                eye = vec3(x,y,z);
                 break;
             }
     }
