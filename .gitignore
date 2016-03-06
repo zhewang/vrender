@@ -3,3 +3,4 @@ stanfordModels/
 *.o
 *.txt
 viewer
+.ycm_extra_conf.*

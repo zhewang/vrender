@@ -4,7 +4,5 @@
 
 #include "vgl.h"
 
-using namespace std;
-
 
 int loadObjFile(char *fileName, float *bounds, GLuint *VAO, GLuint *VAOsize);

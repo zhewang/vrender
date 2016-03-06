@@ -17,7 +17,7 @@ using namespace glm;
 
 vector<GLuint> VAOs;
 vector<GLuint> VAO_Sizes;
-vector<glm::mat4> ModelMats;
+vector<glm::mat4> Models;
 GLuint uniformShader;
 
 glm::mat4 v; // View matrix
@@ -29,15 +29,19 @@ typedef struct {
     double s[3] = {0.0}, t[3] = {0.0};
 } Task;
 
-void init(void)
+
+void initObjModel(Task t, float bounds[6])
 {
     ////////////////////////////////////////////////////////////////////
     // load each obj and calculate model matrix
     ////////////////////////////////////////////////////////////////////
-    float bounds[6] = {0};
     GLuint vao;
     GLuint vao_size;
-    int status = loadObjFile("./objFiles/sphere.obj", bounds, &vao, &vao_size);
+
+    char f_cstr[1000];
+    strcpy(f_cstr, t.filepath.c_str());
+
+    int status = loadObjFile(f_cstr, bounds, &vao, &vao_size);
     if(status == 0) {
         return;
     }
@@ -49,8 +53,24 @@ void init(void)
             glm::mat4(1.0f),
             glm::vec3(1.0f));
 
-    ModelMats.push_back(m);
+    Models.push_back(m);
 
+    // TODO update bounds
+}
+
+
+void init(std::vector<Task> tasks) {
+    float bounds[6] = {0};
+    vector<Task>::iterator it = tasks.begin();
+    while(it != tasks.end()) {
+        //cout << "obj " << it->filepath << endl;
+        //cout << "rx " << it->rx << " ry " << it->ry << " rz " << it->rz << endl;
+        //cout << "s " << it->s[0] << " " << it->s[1] << " " << it->s[2] << endl;
+        //cout << "t " << it->t[0] << " " << it->t[1] << " " << it->t[2] << endl;
+        initObjModel(*it, bounds);
+        // TODO get the max bounds
+        it ++;
+    }
 
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
@@ -84,26 +104,30 @@ void init(void)
     glUseProgram(uniformShader);
 }
 
+
 void renderDisplay()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    // Update Projection and View
-
-    ////////////////////////////////////////////////////
-    // Send uniform variables to shader
     GLint modelLoc = glGetUniformLocation(uniformShader, "Model");
     GLint viewLoc = glGetUniformLocation(uniformShader, "View");
     GLint projectLoc = glGetUniformLocation(uniformShader, "Project");
 
-    glProgramUniformMatrix4fv(uniformShader, modelLoc, 1, false,  glm::value_ptr(ModelMats[0]));
+    // Update Projection and View
+
+    ////////////////////////////////////////////////////
+    // Send View and Projection matices to shader
+
     glProgramUniformMatrix4fv(uniformShader, viewLoc, 1, false,  glm::value_ptr(v));
     glProgramUniformMatrix4fv(uniformShader, projectLoc, 1, false,  glm::value_ptr(p));
 
-    glBindVertexArray(VAOs[0]);
-    glDrawArrays(GL_TRIANGLES, 0, VAO_Sizes[0]);
-    ////////////////////////////////////////////////////
+    for(int i = 0; i < VAOs.size(); i ++) {
+        glProgramUniformMatrix4fv(uniformShader, modelLoc, 1, false,  glm::value_ptr(Models[i]));
+
+        glBindVertexArray(VAOs[i]);
+        glDrawArrays(GL_TRIANGLES, 0, VAO_Sizes[i]);
+    }
 
 	glFlush();
 }
@@ -184,15 +208,6 @@ int main(int argc, char* argv[])
     vector<Task> tasks;
     loadConfig(argv[2], tasks);
 
-    //vector<Task>::iterator it = tasks.begin();
-    //while(it != tasks.end()) {
-        //cout << "obj " << it->filepath << endl;
-        //cout << "rx " << it->rx << " ry " << it->ry << " rz " << it->rz << endl;
-        //cout << "s " << it->s[0] << " " << it->s[1] << " " << it->s[2] << endl;
-        //cout << "t " << it->t[0] << " " << it->t[1] << " " << it->t[2] << endl;
-        //it ++;
-    //}
-
     // Init OpenGL
     glutInit( &argc, argv );
 	glutInitDisplayMode( GLUT_3_2_CORE_PROFILE | GLUT_RGBA | GLUT_DEPTH);
@@ -211,7 +226,7 @@ int main(int argc, char* argv[])
 		exit (EXIT_FAILURE );
 	}
 
-    init();
+    init(tasks);
     glutDisplayFunc(renderDisplay);
     glutKeyboardFunc(keyboardEvent);
 
