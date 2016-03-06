@@ -24,6 +24,8 @@ GLuint uniformShader;
 glm::mat4 v; // View matrix
 glm::mat4 p; // Projection matrix
 
+bool SOLID = true;
+
 typedef struct {
     char op = 'N'; // r, s, t
     float x = 0.0;
@@ -182,7 +184,15 @@ void keyboardEvent(unsigned char key, int x, int y)
     switch (key)
     {
         //case 'c': changeColor(); break;
-        case 's': displaySolidSurface(); break;
+        case 'o':
+            if(SOLID) {
+                displayWirefram();
+                SOLID = !SOLID;
+            } else {
+                displaySolidSurface();
+                SOLID = !SOLID;
+            }
+            break;
         case 'w': displayWirefram(); break;
         //case 'g': initEllipse(); break;
         //case 'e': initEpitrochoid(); break;
