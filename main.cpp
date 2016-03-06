@@ -284,6 +284,14 @@ void moveCamera(char cmd)
                 eye = vec3(x,y,z);
                 break;
             }
+        case 'k':
+            {
+                cout << "Please enter x, y, z for focal point:" << endl;
+                float x, y, z;
+                cin >> x >> y >> z;
+                center = vec3(x,y,z);
+                break;
+            }
     }
 }
 
