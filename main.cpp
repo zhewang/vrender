@@ -185,24 +185,38 @@ void displayWirefram()
 void moveCamera(char cmd)
 {
     glm::vec3 right = glm::normalize(glm::cross(eye-center, up));
+    float speed = 0.3f;
     switch(cmd)
     {
         case 'w':
-            eye += (center-eye)*0.1f;
+            // FIXME wrong direction after passing origin
+            eye += glm::normalize(center-eye)*speed;
             break;
         case 's':
-            eye -= (center-eye)*0.1f;
+            eye -= glm::normalize(center-eye)*speed;
             break;
         case 'a':
             {
-                eye += right*1.0f;
-                center += right*1.0f;
+                eye += right*speed;
+                center += right*speed;
                 break;
             }
         case 'd':
             {
-                eye -= right*1.0f;
-                center -= right*1.0f;
+                eye -= right*speed;
+                center -= right*speed;
+                break;
+            }
+        case 'r':
+            {
+                eye += glm::normalize(up)*speed;
+                center += glm::normalize(up)*speed;
+                break;
+            }
+        case 't':
+            {
+                eye -= glm::normalize(up)*speed;
+                center -= glm::normalize(up)*speed;
                 break;
             }
     }
@@ -226,7 +240,7 @@ void keyboardEvent(unsigned char key, int x, int y)
                 SOLID = !SOLID;
             }
             break;
-        case 'w': case 's': case 'a': case 'd':
+        case 'w': case 's': case 'a': case 'd': case 'r': case 't':
             moveCamera(key); break;
         //case 'g': initEllipse(); break;
         //case 'e': initEpitrochoid(); break;
