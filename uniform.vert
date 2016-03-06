@@ -22,5 +22,5 @@ main()
     float NdotL = min(max(0, dot(N, L)), 1); // make sure NdotL is in [0,1]
     Color = ambientColor + NdotL * diffuseColor;
 
-    gl_Position = Project*Model*View*vec4(vertexPosition, 1.0);
+    gl_Position = Project*View*Model*vec4(vertexPosition, 1.0);
 }

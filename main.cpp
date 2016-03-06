@@ -26,7 +26,7 @@ glm::mat4 p; // Projection matrix
 typedef struct {
     std::string filepath = "null";
     double rx = 0.0, ry = 0.0, rz = 0.0;
-    double s[3] = {0.0}, t[3] = {0.0};
+    double s[3] = {1.0, 1.0, 1.0}, t[3] = {0.0, 0.0, 0.0};
 } Task;
 
 
@@ -49,9 +49,9 @@ void initObjModel(Task t, float bounds[6])
     VAOs.push_back(vao);
     VAO_Sizes.push_back(vao_size);
 
-    glm::mat4 m = glm::scale(
-            glm::mat4(1.0f),
-            glm::vec3(1.0f));
+    // Apply transformation
+    glm::mat4 m = glm::mat4(1.0f);
+    m = glm::scale(m, glm::vec3((float)t.s[0], (float)t.s[1], (float)t.s[2]));
 
     Models.push_back(m);
 
