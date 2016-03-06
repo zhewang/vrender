@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glm/ext.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 #include "vgl.h"
 #include "LoadShaders.h"
@@ -270,12 +270,12 @@ void moveCamera(char cmd)
             }
         case 'c':
             {
-                up = glm::rotate(up, 1.0f, glm::cross(center-eye, right));
+                up = glm::rotate(up, glm::radians(-1.0f), glm::normalize(center-eye));
                 break;
             }
         case 'v':
             {
-                up = glm::rotate(up, -1.0f, glm::cross(center-eye, right));
+                up = glm::rotate(up, glm::radians(1.0f), glm::normalize(center-eye));
                 break;
             }
         case 'j':
