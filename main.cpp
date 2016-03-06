@@ -47,8 +47,9 @@ void initObjModel(Task t, float bounds[6])
 
     char f_cstr[1000];
     strcpy(f_cstr, t.filepath.c_str());
+    float tempbounds[6];
 
-    int status = loadObjFile(f_cstr, bounds, &vao, &vao_size);
+    int status = loadObjFile(f_cstr, tempbounds, &vao, &vao_size);
     if(status == 0) {
         return;
     }
@@ -61,7 +62,6 @@ void initObjModel(Task t, float bounds[6])
     for(int i = 0; i < t.operations.size(); i ++) {
         Operation o = t.operations[i];
         if(o.op == 's') {
-            //std::cout << o.x <<", "<<o.y<<", "<<o.z<<endl;
             m = glm::scale(m, glm::vec3(o.x, o.y, o.z));
         } else if(o.op == 't') {
             m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
@@ -77,8 +77,8 @@ void initObjModel(Task t, float bounds[6])
     Models.push_back(m);
 
     // Update bounds
-    glm::vec4 min = glm::vec4(bounds[0], bounds[2], bounds[4], 1);
-    glm::vec4 max = glm::vec4(bounds[1], bounds[3], bounds[5], 1);
+    glm::vec4 min = glm::vec4(tempbounds[0], tempbounds[2], tempbounds[4], 1);
+    glm::vec4 max = glm::vec4(tempbounds[1], tempbounds[3], tempbounds[5], 1);
     min = m*min;
     max = m*max;
     bounds[0] = min[0] < bounds[0] ? min[0]:bounds[0];
@@ -87,7 +87,6 @@ void initObjModel(Task t, float bounds[6])
     bounds[1] = max[0] > bounds[1] ? max[0]:bounds[1];
     bounds[3] = max[1] > bounds[3] ? max[1]:bounds[3];
     bounds[5] = max[2] > bounds[5] ? max[2]:bounds[5];
-
 }
 
 
@@ -96,12 +95,7 @@ void init(std::vector<Task> tasks) {
     float bounds[6] = {MAX, MIN, MAX, MIN, MAX, MIN};
     vector<Task>::iterator it = tasks.begin();
     while(it != tasks.end()) {
-        //cout << "obj " << it->filepath << endl;
-        //cout << "rx " << it->rx << " ry " << it->ry << " rz " << it->rz << endl;
-        //cout << "s " << it->s[0] << " " << it->s[1] << " " << it->s[2] << endl;
-        //cout << "t " << it->t[0] << " " << it->t[1] << " " << it->t[2] << endl;
         initObjModel(*it, bounds);
-        // TODO get the max bounds
         it ++;
     }
 
