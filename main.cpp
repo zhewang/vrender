@@ -21,6 +21,7 @@ vector<GLuint> VAO_Sizes;
 vector<glm::mat4> Models;
 GLuint uniformShader;
 
+glm::mat4 v_default; // View matrix
 glm::mat4 v; // View matrix
 glm::mat4 p; // Projection matrix
 
@@ -117,6 +118,7 @@ void init(std::vector<Task> tasks) {
             glm::vec3(midpoints[0], midpoints[1], midpoints[2]), // center
             glm::vec3(0, 0, 1)  // up
             );
+    v_default = v;
 
     ////////////////////////////////////////////////////////////////////
     // Load shaders
@@ -183,7 +185,7 @@ void keyboardEvent(unsigned char key, int x, int y)
 {
     switch (key)
     {
-        //case 'c': changeColor(); break;
+        case 'p': v = v_default; break;
         case 'o':
             if(SOLID) {
                 displayWirefram();
@@ -192,7 +194,7 @@ void keyboardEvent(unsigned char key, int x, int y)
                 displaySolidSurface();
                 SOLID = !SOLID;
             }
-            break;
+            return;
         case 'w': displayWirefram(); break;
         //case 'g': initEllipse(); break;
         //case 'e': initEpitrochoid(); break;
