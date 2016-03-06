@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/ext.hpp>
 
 #include "vgl.h"
 #include "LoadShaders.h"
@@ -66,20 +67,49 @@ void initObjModel(Task t, float bounds[6])
 
     // Apply transformation
     glm::mat4 m = glm::mat4(1.0f);
+    // rotate first
+    for(int i = 0; i < t.operations.size(); i ++) {
+        Operation o = t.operations[i];
+        if(o.op == 'x') {
+            m = glm::rotate(m, o.x, glm::vec3(1.0f, 0.0f, 0.0f));
+        } else if(o.op == 'y') {
+            m = glm::rotate(m, o.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        } else if(o.op == 'z') {
+            m = glm::rotate(m, o.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        }
+    }
+    // then translate
+    for(int i = 0; i < t.operations.size(); i ++) {
+        Operation o = t.operations[i];
+        if(o.op == 't') {
+            cout << "t " << o.x << o.y << o.z << endl;
+            m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
+        }
+    }
+    // last scale
     for(int i = 0; i < t.operations.size(); i ++) {
         Operation o = t.operations[i];
         if(o.op == 's') {
             m = glm::scale(m, glm::vec3(o.x, o.y, o.z));
-        } else if(o.op == 't') {
-            m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
-        } else if(o.op == 'x') {
-            m = glm::rotate(m, o.x, glm::vec3(1, 0, 0));
-        } else if(o.op == 'y') {
-            m = glm::rotate(m, o.y, glm::vec3(0, 1, 0));
-        } else if(o.op == 'z') {
-            m = glm::rotate(m, o.z, glm::vec3(0, 0, 1));
-        }
+        } //else if(o.op == 't') {
+            //cout << "t " << o.x << o.y << o.z << endl;
+            //m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
+        //} else if(o.op == 'x') {
+            //m = glm::rotate(m, o.x, glm::vec3(1.0f, 0.0f, 0.0f));
+        //} else if(o.op == 'y') {
+            //m = glm::rotate(m, o.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        //} else if(o.op == 'z') {
+            //m = glm::rotate(m, o.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        //}
     }
+
+    //if(t.filepath == "stanfordModels/f16.obj"){
+        //cout << "fixed" << endl;
+        //mat4 translate = glm::translate(mat4(1.0f), vec3(3.0f, 3.0f, 0.0f));
+        //mat4 rotate = glm::rotate(mat4(1.0f), 90.0f, vec3(1.0f, 0.0f, 0.0f));
+        //mat4 scale = glm::scale(mat4(1.0f), vec3(3.0f, 3.0f, 3.0f));
+        //m = translate*scale*rotate;
+    //}
 
     Models.push_back(m);
 
@@ -88,6 +118,7 @@ void initObjModel(Task t, float bounds[6])
     glm::vec4 max = glm::vec4(tempbounds[1], tempbounds[3], tempbounds[5], 1);
     min = m*min;
     max = m*max;
+    //cout << max[0] << ", " << max[1] << ", " << max[2] << endl;
     bounds[0] = min[0] < bounds[0] ? min[0]:bounds[0];
     bounds[2] = min[1] < bounds[2] ? min[1]:bounds[2];
     bounds[4] = min[2] < bounds[4] ? min[2]:bounds[4];
@@ -117,6 +148,7 @@ void init(std::vector<Task> tasks) {
         (SceneBounds[2]+SceneBounds[3])/2,
         (SceneBounds[4]+SceneBounds[5])/2
     };
+    //cout << SceneBounds[1] << ", " << SceneBounds[3] << ", " << SceneBounds[5] << endl;
 
     eye_default = eye = glm::vec3(3*SceneBounds[1], 3*SceneBounds[3], SceneBounds[5]);
     center_default = center = glm::vec3(midpoints[0], midpoints[1], midpoints[2]);
@@ -189,11 +221,12 @@ void moveCamera(char cmd)
     switch(cmd)
     {
         case 'w':
-            // FIXME wrong direction after passing origin
-            eye += glm::normalize(center-eye)*speed;
+            eye += glm::normalize(center_default-eye_default)*speed;
+            center += glm::normalize(center_default-eye_default)*speed;
             break;
         case 's':
-            eye -= glm::normalize(center-eye)*speed;
+            eye -= glm::normalize(center_default-eye_default)*speed;
+            center -= glm::normalize(center_default-eye_default)*speed;
             break;
         case 'a':
             {
@@ -219,6 +252,24 @@ void moveCamera(char cmd)
                 center -= glm::normalize(up)*speed;
                 break;
             }
+        case 'q':
+            {
+                break;
+            }
+        case 'e':
+            {
+                break;
+            }
+        case 'c':
+            {
+                up = glm::rotate(up, 1.0f, glm::cross(center-eye, right));
+                break;
+            }
+        case 'v':
+            {
+                up = glm::rotate(up, -1.0f, glm::cross(center-eye, right));
+                break;
+            }
     }
 }
 
@@ -240,7 +291,6 @@ void keyboardEvent(unsigned char key, int x, int y)
                 SOLID = !SOLID;
             }
             break;
-        case 'q': exit(0); break;
         case 27: exit(0); break;
         default:
             moveCamera(key); break;
