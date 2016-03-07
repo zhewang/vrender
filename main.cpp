@@ -13,6 +13,8 @@
 #include "LoadShaders.h"
 #include "loadObj.h"
 
+#define GLM_FORCE_RADIANS
+
 using namespace std;
 using namespace glm;
 
@@ -73,11 +75,11 @@ void initObjModel(Task t, float bounds[6])
     for(int i = 0; i < t.operations.size(); i ++) {
         Operation o = t.operations[i];
         if(o.op == 'x') {
-            m = glm::rotate(m, o.x, glm::vec3(1.0f, 0.0f, 0.0f));
+            m = glm::rotate(m, glm::radians(o.x), glm::vec3(1.0f, 0.0f, 0.0f));
         } else if(o.op == 'y') {
-            m = glm::rotate(m, o.y, glm::vec3(0.0f, 1.0f, 0.0f));
+            m = glm::rotate(m, glm::radians(o.y), glm::vec3(0.0f, 1.0f, 0.0f));
         } else if(o.op == 'z') {
-            m = glm::rotate(m, o.z, glm::vec3(0.0f, 0.0f, 1.0f));
+            m = glm::rotate(m, glm::radians(o.z), glm::vec3(0.0f, 0.0f, 1.0f));
         }
     }
     // then translate
@@ -104,14 +106,6 @@ void initObjModel(Task t, float bounds[6])
             //m = glm::rotate(m, o.z, glm::vec3(0.0f, 0.0f, 1.0f));
         //}
     }
-
-    //if(t.filepath == "stanfordModels/f16.obj"){
-        //cout << "fixed" << endl;
-        //mat4 translate = glm::translate(mat4(1.0f), vec3(3.0f, 3.0f, 0.0f));
-        //mat4 rotate = glm::rotate(mat4(1.0f), 90.0f, vec3(1.0f, 0.0f, 0.0f));
-        //mat4 scale = glm::scale(mat4(1.0f), vec3(3.0f, 3.0f, 3.0f));
-        //m = translate*scale*rotate;
-    //}
 
     Models.push_back(m);
 
@@ -393,7 +387,7 @@ void loadConfig(const char* fileName, vector<Task> &tasks) {
 
 void Reshape(int w, int h) {
     glViewport(0, 0, w, h);
-    p = glm::perspective(45.0f, (float)w*1.0f/h, 0.5f, 100.0f);
+    p = glm::perspective(glm::radians(45.0f), (float)w*1.0f/h, 0.5f, 100.0f);
     glutPostRedisplay();
 }
 
