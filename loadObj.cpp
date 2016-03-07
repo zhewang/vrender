@@ -228,8 +228,8 @@ int loadObjFile(char *fileName, float *bounds, GLuint *VAO, GLuint *VAOsize)
 			char number[16];
 
 			facesCount++;
-			if (facesCount % 10000 == 0)
-				cout << "\t faces " << facesCount << endl;	// display in command line window faces count by 10000
+			//if (facesCount % 10000 == 0)
+				//cout << "\t faces " << facesCount << endl;	// display in command line window faces count by 10000
 
 			while (token != NULL)	// a token is a collection of vertex index, texture index, normal index
 									// vertex index is mandatory, texture index and normal index are optional
