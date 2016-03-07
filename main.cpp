@@ -48,6 +48,15 @@ typedef struct {
     std::vector<Operation> operations;
 } Task;
 
+void printMat4(mat4 m) {
+    for(int i = 0; i < 4; i ++){
+        for(int j = 0; j < 4; j ++) {
+            cout << m[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+
 
 void initObjModel(Task t, float bounds[6])
 {
@@ -86,17 +95,17 @@ void initObjModel(Task t, float bounds[6])
                     glm::vec3(0.0f, 1.0f, 0.0f));
         } else if(o.op == 'z') {
             mRotate = glm::rotate(
-                    mat4(1.0f),
+                    mRotate,
                     glm::radians(o.z),
                     glm::vec3(0.0f, 0.0f, 1.0f));
         }
     }
+    printMat4(mRotate);
     // then translate
     glm::mat4 mTranslate = glm::mat4(1.0f);
     for(int i = 0; i < t.operations.size(); i ++) {
         Operation o = t.operations[i];
         if(o.op == 't') {
-            cout << "t " << o.x << o.y << o.z << endl;
             mTranslate = glm::translate(mat4(1.0f), glm::vec3(o.x, o.y, o.z));
         }
     }
