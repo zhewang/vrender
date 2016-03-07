@@ -116,14 +116,14 @@ void initObjModel(Task t, float bounds[6])
         if(o.op == 's') {
             mScale = glm::scale(mat4(1.0f), glm::vec3(o.x, o.y, o.z));
         } //else if(o.op == 't') {
-            //cout << "t " << o.x << o.y << o.z << endl;
-            //m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
+        //cout << "t " << o.x << o.y << o.z << endl;
+        //m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
         //} else if(o.op == 'x') {
-            //m = glm::rotate(m, o.x, glm::vec3(1.0f, 0.0f, 0.0f));
+        //m = glm::rotate(m, o.x, glm::vec3(1.0f, 0.0f, 0.0f));
         //} else if(o.op == 'y') {
-            //m = glm::rotate(m, o.y, glm::vec3(0.0f, 1.0f, 0.0f));
+        //m = glm::rotate(m, o.y, glm::vec3(0.0f, 1.0f, 0.0f));
         //} else if(o.op == 'z') {
-            //m = glm::rotate(m, o.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        //m = glm::rotate(m, o.z, glm::vec3(0.0f, 0.0f, 1.0f));
         //}
     }
 
@@ -177,13 +177,13 @@ void init(std::vector<Task> tasks) {
     // Load shaders
     ////////////////////////////////////////////////////////////////////
 
-	ShaderInfo  shaders[] = {
-		{ GL_VERTEX_SHADER, "uniform.vert" },
-		{ GL_FRAGMENT_SHADER, "uniform.frag" },
-		{ GL_NONE, NULL }
-	};
+    ShaderInfo  shaders[] = {
+        { GL_VERTEX_SHADER, "uniform.vert" },
+        { GL_FRAGMENT_SHADER, "uniform.frag" },
+        { GL_NONE, NULL }
+    };
 
-	uniformShader = LoadShaders( shaders );
+    uniformShader = LoadShaders( shaders );
 
     glUseProgram(uniformShader);
 }
@@ -192,7 +192,7 @@ void init(std::vector<Task> tasks) {
 void renderDisplay()
 {
     glClearColor(0, 43/255.0, 54/255.0, 1);
-	glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
 
     GLint modelLoc = glGetUniformLocation(uniformShader, "Model");
@@ -211,7 +211,7 @@ void renderDisplay()
         glDrawArrays(GL_TRIANGLES, 0, VAO_Sizes[i]);
     }
 
-	glFlush();
+    glFlush();
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -360,7 +360,7 @@ void keyboardEvent(unsigned char key, int x, int y)
             break;
         case 27: exit(0); break;
         default:
-            moveCamera(key); break;
+                 moveCamera(key); break;
     }
     glutPostRedisplay();
 }
@@ -426,23 +426,23 @@ int main(int argc, char* argv[])
 
     // Init OpenGL
     glutInit( &argc, argv );
-	glutInitDisplayMode( GLUT_3_2_CORE_PROFILE | GLUT_RGBA | GLUT_DEPTH);
-	glutInitWindowSize( 512, 512 );
+    glutInitDisplayMode( GLUT_3_2_CORE_PROFILE | GLUT_RGBA | GLUT_DEPTH);
+    glutInitWindowSize( 512, 512 );
 
-	glutCreateWindow( argv[0] );
+    glutCreateWindow( argv[0] );
 
-	glewExperimental = GL_TRUE;	// added for glew to work!
+    glewExperimental = GL_TRUE;	// added for glew to work!
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 
     glutReshapeFunc(Reshape);
 
-	if ( glewInit() )
-	{
-		cerr << "Unable to initialize GLEW ... exiting" << endl;
-		exit (EXIT_FAILURE );
-	}
+    if ( glewInit() )
+    {
+        cerr << "Unable to initialize GLEW ... exiting" << endl;
+        exit (EXIT_FAILURE );
+    }
 
     init(tasks);
     glutDisplayFunc(renderDisplay);
@@ -450,5 +450,5 @@ int main(int argc, char* argv[])
 
     glutMainLoop();
 
-	return 0;
+    return 0;
 }
