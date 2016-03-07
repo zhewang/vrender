@@ -32,12 +32,10 @@ glm::mat4 p; // Projection matrix
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
 
-float aspect = 1.0f;
-
 bool SOLID = true;
 
 typedef struct {
-    char op = 'N'; // r, s, t
+    char op = 'N'; // r:(x, y, z), s, t
     float x = 0.0;
     float y = 0.0;
     float z = 0.0;
@@ -102,7 +100,6 @@ void initObjModel(Task t, float bounds[6])
     glm::vec4 max = glm::vec4(tempbounds[1], tempbounds[3], tempbounds[5], 1);
     min = m*min;
     max = m*max;
-    //cout << max[0] << ", " << max[1] << ", " << max[2] << endl;
     bounds[0] = min[0] < bounds[0] ? min[0]:bounds[0];
     bounds[2] = min[1] < bounds[2] ? min[1]:bounds[2];
     bounds[4] = min[2] < bounds[4] ? min[2]:bounds[4];
@@ -125,14 +122,13 @@ void init(std::vector<Task> tasks) {
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
     ////////////////////////////////////////////////////////////////////
-    p = glm::perspective(glm::radians(45.0f), aspect , 0.5f, 100.0f);
+    p = glm::perspective(glm::radians(45.0f), 1.0f, 0.5f, 100.0f);
 
     float midpoints[3] = {
         (SceneBounds[0]+SceneBounds[1])/2,
         (SceneBounds[2]+SceneBounds[3])/2,
         (SceneBounds[4]+SceneBounds[5])/2
     };
-    //cout << SceneBounds[1] << ", " << SceneBounds[3] << ", " << SceneBounds[5] << endl;
 
     eye_default = eye = glm::vec3(3*SceneBounds[1], 3*SceneBounds[3], SceneBounds[5]);
     center_default = center = glm::vec3(midpoints[0], midpoints[1], midpoints[2]);
