@@ -70,31 +70,42 @@ void initObjModel(Task t, float bounds[6])
     VAO_Sizes.push_back(vao_size);
 
     // Apply transformation
-    glm::mat4 m = glm::mat4(1.0f);
+    glm::mat4 mRotate = glm::mat4(1.0f);
     // rotate first
     for(int i = 0; i < t.operations.size(); i ++) {
         Operation o = t.operations[i];
         if(o.op == 'x') {
-            m = glm::rotate(m, glm::radians(o.x), glm::vec3(1.0f, 0.0f, 0.0f));
+            mRotate = glm::rotate(
+                    mRotate,
+                    glm::radians(o.x),
+                    glm::vec3(1.0f, 0.0f, 0.0f));
         } else if(o.op == 'y') {
-            m = glm::rotate(m, glm::radians(o.y), glm::vec3(0.0f, 1.0f, 0.0f));
+            mRotate = glm::rotate(
+                    mRotate,
+                    glm::radians(o.y),
+                    glm::vec3(0.0f, 1.0f, 0.0f));
         } else if(o.op == 'z') {
-            m = glm::rotate(m, glm::radians(o.z), glm::vec3(0.0f, 0.0f, 1.0f));
+            mRotate = glm::rotate(
+                    mat4(1.0f),
+                    glm::radians(o.z),
+                    glm::vec3(0.0f, 0.0f, 1.0f));
         }
     }
     // then translate
+    glm::mat4 mTranslate = glm::mat4(1.0f);
     for(int i = 0; i < t.operations.size(); i ++) {
         Operation o = t.operations[i];
         if(o.op == 't') {
             cout << "t " << o.x << o.y << o.z << endl;
-            m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
+            mTranslate = glm::translate(mat4(1.0f), glm::vec3(o.x, o.y, o.z));
         }
     }
     // last scale
+    glm::mat4 mScale = glm::mat4(1.0f);
     for(int i = 0; i < t.operations.size(); i ++) {
         Operation o = t.operations[i];
         if(o.op == 's') {
-            m = glm::scale(m, glm::vec3(o.x, o.y, o.z));
+            mScale = glm::scale(mat4(1.0f), glm::vec3(o.x, o.y, o.z));
         } //else if(o.op == 't') {
             //cout << "t " << o.x << o.y << o.z << endl;
             //m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
@@ -107,6 +118,7 @@ void initObjModel(Task t, float bounds[6])
         //}
     }
 
+    glm::mat4 m = mTranslate*mScale*mRotate;
     Models.push_back(m);
 
     // Update bounds
