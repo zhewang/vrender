@@ -37,7 +37,7 @@ public:
 		y = f2;
 		z = f3;
 	}
-	// constructor with no parameters
+	// constructor with no parameters 
 	three() {};
 	// member data
 	float x;
@@ -93,11 +93,11 @@ int loadObjFile(char *fileName, float *bounds, GLuint *VAO, GLuint *VAOsize)
 	{
 		pathToFile[0] = '\0';
 	}
-
+	
 	// we have been able to open a wavefront obj file, so set up and return a VAO for this object described in the OBJ file
 	glGenVertexArrays(1, VAO);
 	glBindVertexArray(*VAO);
-
+	
 	three tempFloats;
 
 	vector <three> vertices;	// these three dynamic arrays hold the index values read from the obj file
@@ -215,7 +215,7 @@ int loadObjFile(char *fileName, float *bounds, GLuint *VAO, GLuint *VAOsize)
 		else if (strcmp(keyword, "f") == 0)	// a face or triangle description
 		{
 			// f  and first reference is vertex id, second is texture id, and third is normal id
-			// second and third ids are optional
+			// second and third ids are optional   
 			// it is possible to have two // together, such as 3//1
 			objFile.getline(line, 1024);
 			// break out the information of indices for vertices, textures and normals
@@ -228,8 +228,8 @@ int loadObjFile(char *fileName, float *bounds, GLuint *VAO, GLuint *VAOsize)
 			char number[16];
 
 			facesCount++;
-			//if (facesCount % 10000 == 0)
-				//cout << "\t faces " << facesCount << endl;	// display in command line window faces count by 10000
+			if (facesCount % 10000 == 0)
+				cout << "\t faces " << facesCount << endl;	// display in command line window faces count by 10000
 
 			while (token != NULL)	// a token is a collection of vertex index, texture index, normal index
 									// vertex index is mandatory, texture index and normal index are optional
@@ -358,26 +358,26 @@ int loadObjFile(char *fileName, float *bounds, GLuint *VAO, GLuint *VAOsize)
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vertexAmbientColor);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexNormal);
 	glBufferData(GL_ARRAY_BUFFER, vNormal.size() * sizeof(float), &vNormal[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(1);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vertexDiffuseColor);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexAmbientColor);
 	glBufferData(GL_ARRAY_BUFFER, vAmbientColor.size() * sizeof(float), &vAmbientColor[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(2);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vertexNormal);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexDiffuseColor);
 	glBufferData(GL_ARRAY_BUFFER, vDiffuseColor.size() * sizeof(float), &vDiffuseColor[0], GL_STATIC_DRAW);
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glEnableVertexAttribArray(3);
 
 	// print out information on this obj file
-	//cout << "\tbounds of the file: " << bounds[0] << " x " << bounds[1] << " "
-		//<< bounds[2] << " y " << bounds[3] << " "
-		//<< bounds[4] << " z " << bounds[5] << endl;
-	//cout << "\tnumber of faces " << facesCount << " number of vertices " << verticesCount << endl;
+	cout << "\tbounds of the file: " << bounds[0] << " x " << bounds[1] << " "
+		<< bounds[2] << " y " << bounds[3] << " "
+		<< bounds[4] << " z " << bounds[5] << endl;
+	cout << "\tnumber of faces " << facesCount << " number of vertices " << verticesCount << endl;
 	//cout << "\tcounts, number vertices " << vPosition.size() << " number colors " << vAmbientColor.size() << " and " << vDiffuseColor.size()
 	//	<< " number normals " << vNormal.size() << endl;
 
