@@ -35,14 +35,14 @@ glm::vec3 eye_default, center_default, up_default;
 bool SOLID = true;
 
 typedef struct {
-    char op = 'N'; // r:(x, y, z), s, t
-    float x = 0.0;
-    float y = 0.0;
-    float z = 0.0;
+    char op; // r:(x, y, z), s, t
+    float x;
+    float y;
+    float z;
 } Operation;
 
 typedef struct {
-    std::string filepath = "null";
+    std::string filepath;
     std::vector<Operation> operations;
 } Task;
 
@@ -255,15 +255,15 @@ void moveCamera(char cmd)
         case 'z':
             {
                 vec3 gaze = center - eye;
-                gaze = glm::rotate(gaze, glm::radians(1.0f), up);
-                center = gaze + eye;
+                gaze = glm::rotate(gaze, glm::radians(-1.0f), up);
+                eye = center - gaze;
                 break;
             }
         case 'x':
             {
                 vec3 gaze = center - eye;
-                gaze = glm::rotate(gaze, glm::radians(-1.0f), up);
-                center = gaze + eye;
+                gaze = glm::rotate(gaze, glm::radians(1.0f), up);
+                eye = center - gaze;
                 break;
             }
         case 'c':
