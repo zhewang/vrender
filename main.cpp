@@ -56,83 +56,55 @@ void printMat4(mat4 m) {
 }
 
 
-void initObjModel(Task t, float bounds[6])
+void initObjModel()
 {
     ////////////////////////////////////////////////////////////////////
     // load each obj and calculate model matrix
     ////////////////////////////////////////////////////////////////////
     GLuint vao;
+    GLuint buffer;
     GLuint vao_size;
 
-    char f_cstr[1000];
-    strcpy(f_cstr, t.filepath.c_str());
-    float tempbounds[6];
+	GLfloat vertices[6][3] = {
+		{ -1.0f, -1.0f, 0.0f },
+		{  1.0f, -1.0f, 0.0f },
+		{  1.0f,  1.0f, 0.0f },
+		{ -1.0f,  1.0f, 0.0f },
+		{ -1.0f, -1.0f, 0.0f },
+		{  1.0f,  1.0f, 0.0f },
+	};
 
-    int status = loadObjFile(f_cstr, tempbounds, &vao, &vao_size);
-    if(status == 0) {
-        return;
-    }
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &buffer);
+    vao_size = 6;
+
+	glBindVertexArray(vao);
+	glBindBuffer( GL_ARRAY_BUFFER, buffer);
+
+	glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW );
+	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray( 0 );
 
     VAOs.push_back(vao);
     VAO_Sizes.push_back(vao_size);
 
     // Apply transformation
     glm::mat4 m = glm::mat4(1.0f);
-    for(int i = t.operations.size()-1; i >= 0; i --) {
-        Operation o = t.operations[i];
-        if(o.op == 's') {
-            m = glm::scale(m, glm::vec3(o.x, o.y, o.z));
-        } else if(o.op == 't') {
-            m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
-        } else if(o.op == 'x') {
-            m = glm::rotate(m, glm::radians(o.x), glm::vec3(1.0f, 0.0f, 0.0f));
-        } else if(o.op == 'y') {
-            m = glm::rotate(m, glm::radians(o.y), glm::vec3(0.0f, 1.0f, 0.0f));
-        } else if(o.op == 'z') {
-            m = glm::rotate(m, glm::radians(o.z), glm::vec3(0.0f, 0.0f, 1.0f));
-        }
-    }
-
     Models.push_back(m);
-
-    // Update bounds
-    glm::vec4 min = glm::vec4(tempbounds[0], tempbounds[2], tempbounds[4], 1);
-    glm::vec4 max = glm::vec4(tempbounds[1], tempbounds[3], tempbounds[5], 1);
-    min = m*min;
-    max = m*max;
-    bounds[0] = min[0] < bounds[0] ? min[0]:bounds[0];
-    bounds[2] = min[1] < bounds[2] ? min[1]:bounds[2];
-    bounds[4] = min[2] < bounds[4] ? min[2]:bounds[4];
-    bounds[1] = max[0] > bounds[1] ? max[0]:bounds[1];
-    bounds[3] = max[1] > bounds[3] ? max[1]:bounds[3];
-    bounds[5] = max[2] > bounds[5] ? max[2]:bounds[5];
 }
 
 
-void init(std::vector<Task> tasks) {
-    float MIN = -999999999, MAX = 999999999;
-    SceneBounds[0] = SceneBounds[2] = SceneBounds[4] = MAX;
-    SceneBounds[1] = SceneBounds[3] = SceneBounds[5] = MIN;
-    vector<Task>::iterator it = tasks.begin();
-    while(it != tasks.end()) {
-        initObjModel(*it, SceneBounds);
-        it ++;
-    }
+void init() {
+    initObjModel();
 
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
     ////////////////////////////////////////////////////////////////////
     p = glm::perspective(glm::radians(45.0f), 1.0f, 0.5f, 100.0f);
 
-    float midpoints[3] = {
-        (SceneBounds[0]+SceneBounds[1])/2,
-        (SceneBounds[2]+SceneBounds[3])/2,
-        (SceneBounds[4]+SceneBounds[5])/2
-    };
-
-    eye_default = eye = glm::vec3(3*SceneBounds[1], 3*SceneBounds[3], SceneBounds[5]);
-    center_default = center = glm::vec3(midpoints[0], midpoints[1], midpoints[2]);
-    up_default = up = glm::vec3(0, 0, 1);
+    eye_default = eye = glm::vec3(0,0,5);
+    center_default = center = glm::vec3(0, 0, 0);
+    up_default = up = glm::vec3(0, 1, 0);
 
     v = glm::lookAt(eye, center, up);
 
@@ -332,47 +304,6 @@ void keyboardEvent(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
-void loadConfig(const char* fileName, vector<Task> &tasks) {
-    std::ifstream infile(fileName);
-    if(!infile.is_open()){
-        std::cerr << "Configure file not exits." << std::endl;
-        exit(0);
-    }
-    string word;
-    bool first = true;
-    while (infile >> word)
-    {
-        if(word == "obj") {
-            tasks.push_back(Task());
-            infile >> tasks.back().filepath;
-        }
-        else {
-            Operation o;
-            if(word == "rx") {
-                o.op = 'x';
-                infile >> o.x;
-            }
-            else if(word == "ry") {
-                o.op = 'y';
-                infile >> o.y;
-            }
-            else if(word == "rz") {
-                o.op = 'z';
-                infile >> o.z;
-            }
-            else if(word == "s") {
-                o.op = 's';
-                infile >> o.x >> o.y >> o.z;
-            }
-            else if(word == "t") {
-                o.op = 't';
-                infile >> o.x >> o.y >> o.z;
-            }
-            tasks.back().operations.push_back(o);
-        }
-    }
-}
-
 void Reshape(int w, int h) {
     glViewport(0, 0, w, h);
     p = glm::perspective(glm::radians(45.0f), (float)w*1.0f/h, 0.5f, 100.0f);
@@ -382,14 +313,14 @@ void Reshape(int w, int h) {
 int main(int argc, char* argv[])
 {
     // Parse arguments
-    if(argc != 3 || strcmp(argv[1], "-c")) {
-        std::cerr << "Usage: " << argv[0] << " -c CONFIG_FILE" << std::endl;
-        exit(0);
-    }
+    //if(argc != 3 || strcmp(argv[1], "-c")) {
+        //std::cerr << "Usage: " << argv[0] << " -c CONFIG_FILE" << std::endl;
+        //exit(0);
+    //}
 
     // Load configure file
-    vector<Task> tasks;
-    loadConfig(argv[2], tasks);
+    //vector<Task> tasks;
+    //loadConfig(argv[2], tasks);
 
     // Init OpenGL
     glutInit( &argc, argv );
@@ -411,7 +342,7 @@ int main(int argc, char* argv[])
         exit (EXIT_FAILURE );
     }
 
-    init(tasks);
+    init();
     glutDisplayFunc(renderDisplay);
     glutKeyboardFunc(keyboardEvent);
 
