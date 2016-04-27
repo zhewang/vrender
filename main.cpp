@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/rotate_vector.hpp>
+#include <SOIL.h>
 
 #include "vgl.h"
 #include "LoadShaders.h"
@@ -31,34 +32,95 @@ glm::mat4 p; // Projection matrix
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
 
+void loadTexture(char fullPath[128]) {
+    if(strcmp(fullPath, "") != 0) {
+
+        GLuint tex;
+        glGenTextures(1, &tex);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        int width, height, channels;
+        unsigned char* image = SOIL_load_image(fullPath, &width, &height, &channels, SOIL_LOAD_AUTO);
+        if(image == NULL) {
+            cout << fullPath << endl;
+            cout << "Load Texture Image Error.\n";
+            exit(0);
+        }
+
+        //flip
+        for (int j = 0; j * 2 < height; ++j)
+        {
+            int index1 = j * width * channels;
+            int index2 = (height - 1 - j) * width * channels;
+            for (int i = width * channels; i > 0; --i)
+            {
+                unsigned char temp = image[index1];
+                image[index1] = image[index2];
+                image[index2] = temp;
+                ++index1;
+                ++index2;
+            }
+        }
+
+        if(channels == 3) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+                    GL_UNSIGNED_BYTE, image);
+        } else if (channels == 4) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                    GL_UNSIGNED_BYTE, image);
+        }
+        glGenerateMipmap(GL_TEXTURE_2D);
+        //tempObjList[i].diffuseTexMapID = tex;
+        SOIL_free_image_data(image);
+
+        glBindTexture(GL_TEXTURE_2D, tex);
+        
+    }
+}
+
 void initSlice(GLfloat z)
 {
     ////////////////////////////////////////////////////////////////////
     // load each obj and calculate model matrix
     ////////////////////////////////////////////////////////////////////
     GLuint vao;
-    GLuint buffer;
+    GLuint vBuffer, vtBuffer;
     GLuint vao_size;
 
 	GLfloat vertices[6][3] = {
-		{ -1.0f, -1.0f, z},
-		{  1.0f, -1.0f, z},
-		{  1.0f,  1.0f, z},
-		{ -1.0f,  1.0f, z},
-		{ -1.0f, -1.0f, z},
-		{  1.0f,  1.0f, z},
+		{-1.0f, -1.0f, z},
+		{ 1.0f, -1.0f, z},
+		{ 1.0f,  1.0f, z},
+		{-1.0f,  1.0f, z},
+		{-1.0f, -1.0f, z},
+		{ 1.0f,  1.0f, z},
 	};
 
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &buffer);
+    GLfloat vt_z = (z+1.0)/2.0;
+	GLfloat vtexture[6][3] = {
+		{0.0f, 0.0f, vt_z},
+		{1.0f, 0.0f, vt_z},
+		{1.0f, 1.0f, vt_z},
+		{0.0f, 1.0f, vt_z},
+		{0.0f, 0.0f, vt_z},
+		{1.0f, 1.0f, vt_z},
+	};
     vao_size = 6;
 
-	glBindVertexArray(vao);
-	glBindBuffer( GL_ARRAY_BUFFER, buffer);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vBuffer);
+    glGenBuffers(1, &vtBuffer);
 
+	glBindVertexArray(vao);
+
+	glBindBuffer( GL_ARRAY_BUFFER, vBuffer);
 	glBufferData( GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW );
 	glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
-	glEnableVertexAttribArray( 0 );
+	glEnableVertexAttribArray(0);
+
+	glBindBuffer( GL_ARRAY_BUFFER, vtBuffer);
+	glBufferData( GL_ARRAY_BUFFER, sizeof(vtexture), vtexture, GL_STATIC_DRAW );
+	glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+	glEnableVertexAttribArray(1);
 
     VAOs.push_back(vao);
     VAO_Sizes.push_back(vao_size);
@@ -70,11 +132,19 @@ void initSlice(GLfloat z)
 
 
 void init() {
-    int sliceCount = 10;
+    ////////////////////////////////////////////////////////////////////
+    // Generate Slices
+    ////////////////////////////////////////////////////////////////////
+    int sliceCount = 100;
     float sliceStep = 2.0f/sliceCount;
     for(int i = 0; i < sliceCount; i ++) {
         initSlice(-1.0+i*sliceStep); // [-1,1]
     }
+
+    ////////////////////////////////////////////////////////////////////
+    // Load Texture
+    ////////////////////////////////////////////////////////////////////
+    loadTexture("./mandrill.png");
 
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view

@@ -5,11 +5,12 @@ uniform mat4 Model;
 uniform mat4 Project;
 
 layout(location = 0) in vec3 vPos;
+layout(location = 1) in vec3 vtPos;
 
-out vec4 Color;
+out vec3 Texcoord;
 
 void main()
 {
-    Color = vec4(128, 64, 0, 1.0);
+    Texcoord = vtPos;
     gl_Position = Project*View*Model*vec4(vPos, 1.0);
 }

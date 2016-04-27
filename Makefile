@@ -8,7 +8,7 @@ LIBDIR = /usr/local/lib
 .cpp.o:
 	$(CC) -I$(INCDIR) -c $(CFLAGS) $(CPPFLAGS) -o $@ $<
 
-LIBS = -framework OpenGL -framework GLUT -L$(LIBDIR) -lglew
+LIBS = -framework OpenGL -framework GLUT -L$(LIBDIR) -lglew -lSOIL
 SRCS = main.cpp LoadShaders.cpp loadObj.cpp
 OBJS = main.o LoadShaders.o loadObj.o
 

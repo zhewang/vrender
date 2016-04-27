@@ -1,11 +1,13 @@
 #version 330 core
 
-in vec4 Color;
+uniform sampler2D tex;
+
+in vec3 Texcoord;
 
 out vec4 fColor;
 
 void
 main()
 {
-    fColor = Color;
+    fColor = texture(tex, Texcoord.xy);
 }
