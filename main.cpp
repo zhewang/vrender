@@ -56,7 +56,7 @@ void printMat4(mat4 m) {
 }
 
 
-void initObjModel()
+void initSlice(GLfloat z)
 {
     ////////////////////////////////////////////////////////////////////
     // load each obj and calculate model matrix
@@ -66,12 +66,12 @@ void initObjModel()
     GLuint vao_size;
 
 	GLfloat vertices[6][3] = {
-		{ -1.0f, -1.0f, 0.0f },
-		{  1.0f, -1.0f, 0.0f },
-		{  1.0f,  1.0f, 0.0f },
-		{ -1.0f,  1.0f, 0.0f },
-		{ -1.0f, -1.0f, 0.0f },
-		{  1.0f,  1.0f, 0.0f },
+		{ -1.0f, -1.0f, z},
+		{  1.0f, -1.0f, z},
+		{  1.0f,  1.0f, z},
+		{ -1.0f,  1.0f, z},
+		{ -1.0f, -1.0f, z},
+		{  1.0f,  1.0f, z},
 	};
 
     glGenVertexArrays(1, &vao);
@@ -95,7 +95,11 @@ void initObjModel()
 
 
 void init() {
-    initObjModel();
+    int sliceCount = 10;
+    float sliceStep = 2.0f/sliceCount;
+    for(int i = 0; i < sliceCount; i ++) {
+        initSlice(-1.0+i*sliceStep); // [-1,1]
+    }
 
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
