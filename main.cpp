@@ -22,39 +22,14 @@ using namespace glm;
 vector<GLuint> VAOs;
 vector<GLuint> VAO_Sizes;
 vector<glm::mat4> Models;
-GLuint uniformShader;
 
-float SceneBounds[6];
+GLuint uniformShader;
 
 glm::mat4 v; // View matrix
 glm::mat4 p; // Projection matrix
 
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
-
-bool SOLID = true;
-
-typedef struct {
-    char op; // r:(x, y, z), s, t
-    float x;
-    float y;
-    float z;
-} Operation;
-
-typedef struct {
-    std::string filepath;
-    std::vector<Operation> operations;
-} Task;
-
-void printMat4(mat4 m) {
-    for(int i = 0; i < 4; i ++){
-        for(int j = 0; j < 4; j ++) {
-            cout << m[i][j] << " ";
-        }
-        cout << endl;
-    }
-}
-
 
 void initSlice(GLfloat z)
 {
@@ -157,49 +132,40 @@ void renderDisplay()
 //  main
 ////////////////////////////////////////////////////////////////////////
 
-void displaySolidSurface()
-{
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glutPostRedisplay();
-}
-
-void displayWirefram()
-{
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glLineWidth(5.0);
-    glutPostRedisplay();
-}
-
 void moveCamera(char cmd)
 {
     glm::vec3 right = glm::normalize(glm::cross(eye-center, up));
-    float speed = 0.3f;
+    float speed = 0.1f;
     switch(cmd)
     {
         case 'w':
             {
-                vec3 change = glm::normalize(center-eye)*speed;
+                vec3 change = (center-eye)*0.01f;
                 eye += change;
                 center += change;
                 break;
             }
         case 's':
             {
-                vec3 change = glm::normalize(center-eye)*speed;
+                vec3 change = (center-eye)*0.01f;
                 eye -= change;
                 center -= change;
                 break;
             }
         case 'a':
             {
-                eye += right*speed;
-                center += right*speed;
+                float l = glm::length(center-eye);
+                l = l/10;
+                eye += right*l*speed;
+                center += right*l*speed;
                 break;
             }
         case 'd':
             {
-                eye -= right*speed;
-                center -= right*speed;
+                float l = glm::length(center-eye);
+                l = l/10;
+                eye -= right*l*speed;
+                center -= right*l*speed;
                 break;
             }
         case 'r':
@@ -217,15 +183,17 @@ void moveCamera(char cmd)
         case 'q':
             {
                 vec3 gaze = center - eye;
-                gaze = glm::rotate(gaze, glm::radians(1.0f), right);
-                center = gaze + eye;
+                gaze = glm::rotate(gaze, glm::radians(-1.0f), right);
+                //center = gaze + eye;
+                eye = center - gaze;
                 break;
             }
         case 'e':
             {
                 vec3 gaze = center - eye;
-                gaze = glm::rotate(gaze, glm::radians(-1.0f), right);
-                center = gaze + eye;
+                gaze = glm::rotate(gaze, glm::radians(1.0f), right);
+                //center = gaze + eye;
+                eye = center - gaze;
                 break;
             }
         case 'z':
@@ -233,8 +201,8 @@ void moveCamera(char cmd)
                 //vec3 gaze = center - eye;
                 //gaze = glm::rotate(gaze, glm::radians(-1.0f), up);
                 //eye = center - gaze;
-                eye = glm::rotate(eye, glm::radians(-1.0f), up);
-                center = glm::rotate(center, glm::radians(-1.0f), up);
+                eye = glm::rotate(eye, glm::radians(1.0f), up);
+                center = glm::rotate(center, glm::radians(1.0f), up);
                 break;
             }
         case 'x':
@@ -242,18 +210,18 @@ void moveCamera(char cmd)
                 //vec3 gaze = center - eye;
                 //gaze = glm::rotate(gaze, glm::radians(1.0f), up);
                 //eye = center - gaze;
-                eye = glm::rotate(eye, glm::radians(1.0f), up);
-                center = glm::rotate(center, glm::radians(1.0f), up);
+                eye = glm::rotate(eye, glm::radians(-1.0f), up);
+                center = glm::rotate(center, glm::radians(-1.0f), up);
                 break;
             }
         case 'c':
             {
-                up = glm::rotate(up, glm::radians(-1.0f), glm::normalize(center-eye));
+                up = glm::rotate(up, glm::radians(1.0f), glm::normalize(center-eye));
                 break;
             }
         case 'v':
             {
-                up = glm::rotate(up, glm::radians(1.0f), glm::normalize(center-eye));
+                up = glm::rotate(up, glm::radians(-1.0f), glm::normalize(center-eye));
                 break;
             }
         case 'j':
@@ -291,15 +259,6 @@ void keyboardEvent(unsigned char key, int x, int y)
             eye = eye_default;
             center = center_default;
             up = up_default;
-            break;
-        case 'o':
-            if(SOLID) {
-                displayWirefram();
-                SOLID = !SOLID;
-            } else {
-                displaySolidSurface();
-                SOLID = !SOLID;
-            }
             break;
         case 27: exit(0); break;
         default:
