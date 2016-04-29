@@ -72,9 +72,64 @@ void loadTexture(char fullPath[128]) {
         //tempObjList[i].diffuseTexMapID = tex;
         SOIL_free_image_data(image);
 
-        glBindTexture(GL_TEXTURE_2D, tex);
+        //glBindTexture(GL_TEXTURE_2D, tex);
         
     }
+}
+
+void loadTexture2(const char* filename, GLuint w, GLuint h, GLuint d)
+{
+    GLuint tex;
+    FILE *fp;
+    size_t size = w * h * d;
+    GLubyte *data = new GLubyte[size];			  // 8bit
+    //if (!(fp = fopen(filename, "rb")))
+    //{
+        //cout << "Error: opening .raw file failed" << endl;
+        //exit(EXIT_FAILURE);
+    //}
+    //else
+    //{
+        //cout << "OK: open .raw file successed" << endl;
+    //}
+    //if ( fread(data, sizeof(char), size, fp)!= size) 
+    //{
+        //cout << "Error: read .raw file failed" << endl;
+        //exit(1);
+    //}
+    //else
+    //{
+        //cout << "OK: read .raw file successed" << endl;
+    //}
+    //fclose(fp);
+
+    for(int i = 0; i < size; i ++) {
+        data[i] = 200;
+    }
+
+    glGenTextures(1, &tex);
+    // bind 3D texture target
+    glBindTexture(GL_TEXTURE_3D, tex);
+    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
+    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    // pixel transfer happens here from client to OpenGL server
+    //glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+    //glGenerateMipmap(GL_TEXTURE_3D);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, w, h, d, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,data);
+
+    delete []data;
+    int max = 0;
+    for(int i = 0; i < size; i ++) {
+        if(int(data[i]) > max) {
+            max = int(data[i]);
+        }
+    }
+    cout << "volume texture max: " << max << endl;
+    //return g_volTexObj;
+    //glBindTexture(GL_TEXTURE_3D, g_volTexObj);
 }
 
 void initSlice(GLfloat z)
@@ -135,8 +190,8 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Generate Slices
     ////////////////////////////////////////////////////////////////////
-    int sliceCount = 100;
-    float sliceStep = 2.0f/sliceCount;
+    int sliceCount = 5;
+    float sliceStep = 2.0f/(sliceCount-1);
     for(int i = 0; i < sliceCount; i ++) {
         initSlice(-1.0+i*sliceStep); // [-1,1]
     }
@@ -144,7 +199,9 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Load Texture
     ////////////////////////////////////////////////////////////////////
-    loadTexture("./mandrill.png");
+    //loadTexture("./mandrill.png");
+    loadTexture2("./head256.raw", 256, 256, 256);
+    //loadTexture2("./AVEC.raw", 512, 512, 48);
 
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
@@ -366,6 +423,9 @@ int main(int argc, char* argv[])
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
+
+    glEnable( GL_ALPHA_TEST );
+    glAlphaFunc( GL_GREATER, 0.05f );
 
     glutReshapeFunc(Reshape);
 

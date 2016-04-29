@@ -1,13 +1,19 @@
-#version 330 core
+#version 410 core
 
-uniform sampler2D tex;
+uniform sampler3D tex;
 
 in vec3 Texcoord;
 
 out vec4 fColor;
 
-void
-main()
+void main()
 {
-    fColor = texture(tex, Texcoord.xy);
+    vec4 colorSample;
+
+    colorSample = texture(tex, Texcoord);
+    if(colorSample.x == 10) {
+        discard;
+    } else {
+        fColor = colorSample;
+    }
 }
