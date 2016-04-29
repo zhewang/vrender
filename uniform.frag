@@ -11,9 +11,9 @@ void main()
     vec4 colorSample;
 
     colorSample = texture(tex, Texcoord);
-    if(colorSample.x == 10) {
+    if(colorSample.x < 0.3) {
         discard;
     } else {
-        fColor = colorSample;
+        fColor = vec4(colorSample.r, colorSample.r, colorSample.r, 1.0);
     }
 }

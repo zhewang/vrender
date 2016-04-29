@@ -32,104 +32,45 @@ glm::mat4 p; // Projection matrix
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
 
-void loadTexture(char fullPath[128]) {
-    if(strcmp(fullPath, "") != 0) {
-
-        GLuint tex;
-        glGenTextures(1, &tex);
-        glBindTexture(GL_TEXTURE_2D, tex);
-        int width, height, channels;
-        unsigned char* image = SOIL_load_image(fullPath, &width, &height, &channels, SOIL_LOAD_AUTO);
-        if(image == NULL) {
-            cout << fullPath << endl;
-            cout << "Load Texture Image Error.\n";
-            exit(0);
-        }
-
-        //flip
-        for (int j = 0; j * 2 < height; ++j)
-        {
-            int index1 = j * width * channels;
-            int index2 = (height - 1 - j) * width * channels;
-            for (int i = width * channels; i > 0; --i)
-            {
-                unsigned char temp = image[index1];
-                image[index1] = image[index2];
-                image[index2] = temp;
-                ++index1;
-                ++index2;
-            }
-        }
-
-        if(channels == 3) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
-                    GL_UNSIGNED_BYTE, image);
-        } else if (channels == 4) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
-                    GL_UNSIGNED_BYTE, image);
-        }
-        glGenerateMipmap(GL_TEXTURE_2D);
-        //tempObjList[i].diffuseTexMapID = tex;
-        SOIL_free_image_data(image);
-
-        //glBindTexture(GL_TEXTURE_2D, tex);
-        
-    }
-}
-
-void loadTexture2(const char* filename, GLuint w, GLuint h, GLuint d)
+void loadTexture(const char* filename, GLuint w, GLuint h, GLuint d)
 {
     GLuint tex;
     FILE *fp;
     size_t size = w * h * d;
     GLubyte *data = new GLubyte[size];			  // 8bit
-    //if (!(fp = fopen(filename, "rb")))
-    //{
-        //cout << "Error: opening .raw file failed" << endl;
-        //exit(EXIT_FAILURE);
-    //}
-    //else
-    //{
-        //cout << "OK: open .raw file successed" << endl;
-    //}
-    //if ( fread(data, sizeof(char), size, fp)!= size) 
-    //{
-        //cout << "Error: read .raw file failed" << endl;
-        //exit(1);
-    //}
-    //else
-    //{
-        //cout << "OK: read .raw file successed" << endl;
-    //}
-    //fclose(fp);
-
-    for(int i = 0; i < size; i ++) {
-        data[i] = 200;
+    if (!(fp = fopen(filename, "rb")))
+    {
+        cout << "Error: opening .raw file failed" << endl;
+        exit(EXIT_FAILURE);
     }
+    else
+    {
+        cout << "OK: open .raw file successed" << endl;
+    }
+    if ( fread(data, sizeof(char), size, fp)!= size) 
+    {
+        cout << "Error: read .raw file failed" << endl;
+        exit(1);
+    }
+    else
+    {
+        cout << "OK: read .raw file successed" << endl;
+    }
+    fclose(fp);
 
     glGenTextures(1, &tex);
     // bind 3D texture target
     glBindTexture(GL_TEXTURE_3D, tex);
-    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
-    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    //glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
     // pixel transfer happens here from client to OpenGL server
-    //glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-    //glGenerateMipmap(GL_TEXTURE_3D);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, w, h, d, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE,data);
+    glPixelStorei(GL_UNPACK_ALIGNMENT,1);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE,data);
 
     delete []data;
-    int max = 0;
-    for(int i = 0; i < size; i ++) {
-        if(int(data[i]) > max) {
-            max = int(data[i]);
-        }
-    }
-    cout << "volume texture max: " << max << endl;
-    //return g_volTexObj;
-    //glBindTexture(GL_TEXTURE_3D, g_volTexObj);
 }
 
 void initSlice(GLfloat z)
@@ -190,7 +131,7 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Generate Slices
     ////////////////////////////////////////////////////////////////////
-    int sliceCount = 5;
+    int sliceCount = 100;
     float sliceStep = 2.0f/(sliceCount-1);
     for(int i = 0; i < sliceCount; i ++) {
         initSlice(-1.0+i*sliceStep); // [-1,1]
@@ -199,9 +140,7 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Load Texture
     ////////////////////////////////////////////////////////////////////
-    //loadTexture("./mandrill.png");
-    loadTexture2("./head256.raw", 256, 256, 256);
-    //loadTexture2("./AVEC.raw", 512, 512, 48);
+    loadTexture("./head256.raw", 256, 256, 225);
 
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
@@ -421,11 +360,14 @@ int main(int argc, char* argv[])
 
     glewExperimental = GL_TRUE;	// added for glew to work!
 
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
+    //glEnable(GL_DEPTH_TEST);
+    //glDepthMask(GL_TRUE);
 
     glEnable( GL_ALPHA_TEST );
-    glAlphaFunc( GL_GREATER, 0.05f );
+    glAlphaFunc( GL_GREATER, 0.3f );
+
+    glEnable(GL_BLEND);
+    glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 
     glutReshapeFunc(Reshape);
 
