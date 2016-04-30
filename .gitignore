@@ -6,3 +6,4 @@ stanfordModels/
 viewer
 .ycm_extra_conf.*
 *.png
+*.raw
