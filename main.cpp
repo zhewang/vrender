@@ -12,7 +12,6 @@
 
 #include "vgl.h"
 #include "LoadShaders.h"
-#include "loadObj.h"
 
 #define GLM_FORCE_RADIANS
 
