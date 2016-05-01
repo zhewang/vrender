@@ -31,6 +31,9 @@ glm::mat4 p; // Projection matrix
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
 
+GLuint tffTexObj;
+GLuint volTexObj;
+
 GLuint initTFF1DTex(const char* filename)
 {
     // read in the user defined data of transfer function
@@ -179,20 +182,11 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Load Texture
     ////////////////////////////////////////////////////////////////////
-    GLuint tffTexObj = initTFF1DTex("./tff.dat");
-    GLuint volTexObj = loadTexture("./head256.raw", 256, 256, 225);
+    tffTexObj = initTFF1DTex("./tff.dat");
+    volTexObj = loadTexture("./head256.raw", 256, 256, 225);
 
     //cout << tffTexObj << ", " << volTexObj << endl;
 
-    GLint tffLoc = glGetUniformLocation(uniformShader, "TransferTex");
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_1D, tffTexObj);
-    glUniform1i(tffLoc, 0);
-
-    GLint volumeLoc = glGetUniformLocation(uniformShader, "VolumeTex");
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_3D, volTexObj);
-    glUniform1i(volumeLoc, 1);
 
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
@@ -226,6 +220,16 @@ void renderDisplay()
     glClearColor(0, 43/255.0, 54/255.0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     glClear(GL_DEPTH_BUFFER_BIT);
+
+    GLint tffLoc = glGetUniformLocation(uniformShader, "TransferTex");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_1D, tffTexObj);
+    glUniform1i(tffLoc, 0);
+
+    GLint volumeLoc = glGetUniformLocation(uniformShader, "VolumeTex");
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_3D, volTexObj);
+    glUniform1i(volumeLoc, 1);
 
     GLint modelLoc = glGetUniformLocation(uniformShader, "Model");
     GLint viewLoc = glGetUniformLocation(uniformShader, "View");

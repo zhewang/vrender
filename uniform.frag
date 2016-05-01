@@ -36,5 +36,5 @@ void main()
     //}
     value = texture(VolumeTex, Texcoord).x;
     colorSample = texture(TransferTex, value);
-    fColor = vec4(colorSample.r*255, colorSample.g*255, colorSample.b*255, colorSample.r);
+    fColor = colorSample;
 }
