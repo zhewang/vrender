@@ -14,7 +14,7 @@ void main()
 
     value = texture(VolumeTex, Texcoord).x;
     colorSample = texture(TransferTex, value);
-    if(value > 0.2) {
+    if(value > 0.1) {
         fColor = vec4(colorSample.r, colorSample.g, colorSample.b, colorSample.a+0.1);
     } else {
         discard;

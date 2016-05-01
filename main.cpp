@@ -30,6 +30,8 @@ typedef struct {
     std::string filepath;
     std::string transfuncpath;
     std::vector<Operation> operations;
+    int volume_x, volume_y, volume_z, pixel_bytes;
+    int tff_size;
     bool hasView;
     float camPosition[3];
     float focalPoint[3];
@@ -54,7 +56,7 @@ glm::vec3 eye_default, center_default, up_default;
 GLuint tffTexObj;
 GLuint volTexObj;
 
-GLuint initTFF1DTex(const std::string filename)
+GLuint initTFF1DTex(const std::string filename, int tff_size)
 {
     // read in the user defined data of transfer function
     ifstream inFile(filename, ifstream::in);
@@ -64,7 +66,7 @@ GLuint initTFF1DTex(const std::string filename)
         exit(EXIT_FAILURE);
     }
     
-    const int MAX_CNT = 10000;
+    const int MAX_CNT = tff_size*4+10; //4 channels: RGBA
     GLubyte *tff = (GLubyte *) calloc(MAX_CNT, sizeof(GLubyte));
     inFile.read(reinterpret_cast<char *>(tff), MAX_CNT);
     if (inFile.eof())
@@ -88,16 +90,16 @@ GLuint initTFF1DTex(const std::string filename)
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, tff);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, tff_size, 0, GL_RGBA, GL_UNSIGNED_BYTE, tff);
     free(tff);    
     return tff1DTex;
 }
 
-GLuint loadTexture(const std::string filename, GLuint w, GLuint h, GLuint d)
+GLuint loadTexture(const std::string filename, GLuint w, GLuint h, GLuint d, GLuint b)
 {
     GLuint tex;
     FILE *fp;
-    size_t size = w * h * d;
+    size_t size = w * h * d * (b/8);
     GLubyte *data = new GLubyte[size];			  // 8bit
     if (!(fp = fopen(filename.c_str(), "rb")))
     {
@@ -129,7 +131,14 @@ GLuint loadTexture(const std::string filename, GLuint w, GLuint h, GLuint d)
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
     // pixel transfer happens here from client to OpenGL server
     glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE,data);
+    if(b == 8) {
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE,data);
+    } else if (b == 16){
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RED, GL_UNSIGNED_SHORT,data);
+    } else {
+        cout << "Unsupported pixel bytes." << endl;
+        exit(1);
+    }
 
     delete []data;
     return tex;
@@ -216,8 +225,10 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Load Texture
     ////////////////////////////////////////////////////////////////////
-    tffTexObj = initTFF1DTex(config.transfuncpath);
-    volTexObj = loadTexture(config.filepath, 256, 256, 225);
+    tffTexObj = initTFF1DTex(config.transfuncpath, config.tff_size);
+    volTexObj = loadTexture(config.filepath, 
+                            config.volume_x, config.volume_y, config.volume_z,
+                            config.pixel_bytes);
 
     //cout << tffTexObj << ", " << volTexObj << endl;
 
@@ -455,6 +466,10 @@ void loadConfig(const char* fileName, SceneConfig &config) {
                    >> word >> config.viewUp[0] >> config.viewUp[1] >> config.viewUp[2];
         } else if (word == "transfunc") {
             infile >> config.transfuncpath;
+        } else if(word == "volume_size") {
+            infile >> config.volume_x >> config.volume_y >> config.volume_z >> config.pixel_bytes;
+        } else if(word == "transfertex_size") {
+            infile >> config.tff_size;
         }
         else {
             Operation o;
