@@ -31,7 +31,46 @@ glm::mat4 p; // Projection matrix
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
 
-void loadTexture(const char* filename, GLuint w, GLuint h, GLuint d)
+GLuint initTFF1DTex(const char* filename)
+{
+    // read in the user defined data of transfer function
+    ifstream inFile(filename, ifstream::in);
+        if (!inFile)
+    {
+	cerr << "Error openning file: " << filename << endl;
+	exit(EXIT_FAILURE);
+    }
+    
+    const int MAX_CNT = 10000;
+    GLubyte *tff = (GLubyte *) calloc(MAX_CNT, sizeof(GLubyte));
+    inFile.read(reinterpret_cast<char *>(tff), MAX_CNT);
+    if (inFile.eof())
+    {
+	size_t bytecnt = inFile.gcount();
+	*(tff + bytecnt) = '\0';
+	cout << "bytecnt " << bytecnt << endl;
+    }
+    else if(inFile.fail())
+    {
+	cout << filename << "read failed " << endl;
+    }
+    else
+    {
+	cout << filename << "is too large" << endl;
+    }    
+    GLuint tff1DTex;
+    glGenTextures(1, &tff1DTex);
+    glBindTexture(GL_TEXTURE_1D, tff1DTex);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, tff);
+    free(tff);    
+    return tff1DTex;
+}
+
+GLuint loadTexture(const char* filename, GLuint w, GLuint h, GLuint d)
 {
     GLuint tex;
     FILE *fp;
@@ -70,6 +109,7 @@ void loadTexture(const char* filename, GLuint w, GLuint h, GLuint d)
     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE,data);
 
     delete []data;
+    return tex;
 }
 
 void initSlice(GLfloat z)
@@ -139,7 +179,20 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Load Texture
     ////////////////////////////////////////////////////////////////////
-    loadTexture("./head256.raw", 256, 256, 225);
+    GLuint tffTexObj = initTFF1DTex("./tff.dat");
+    GLuint volTexObj = loadTexture("./head256.raw", 256, 256, 225);
+
+    //cout << tffTexObj << ", " << volTexObj << endl;
+
+    GLint tffLoc = glGetUniformLocation(uniformShader, "TransferTex");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_1D, tffTexObj);
+    glUniform1i(tffLoc, 0);
+
+    GLint volumeLoc = glGetUniformLocation(uniformShader, "VolumeTex");
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_3D, volTexObj);
+    glUniform1i(volumeLoc, 1);
 
     ////////////////////////////////////////////////////////////////////
     // Calculate initial projection and view
