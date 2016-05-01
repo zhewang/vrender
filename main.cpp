@@ -102,7 +102,7 @@ GLuint initTFF1DTex(const std::string filename, int tff_size)
     {
         size_t bytecnt = inFile.gcount();
         *(tff + bytecnt) = '\0';
-        cout << "bytecnt " << bytecnt << endl;
+        //cout << "bytecnt " << bytecnt << endl;
     }
     else if(inFile.fail())
     {
@@ -124,12 +124,36 @@ GLuint initTFF1DTex(const std::string filename, int tff_size)
     return tff1DTex;
 }
 
+void normValue(GLubyte *data, GLuint pixelCount, GLuint pixelBits) {
+    unsigned int min = 65536;
+    unsigned int max = 0;
+    unsigned char* ptr_char = data;
+    unsigned short* ptr_short = (unsigned short *)data;
+    for(int i = 0; i < pixelCount; i ++) {
+        unsigned int temp;
+        if(pixelBits == 8) temp = ptr_char[i];
+        if(pixelBits == 16) temp = ptr_short[i];
+        if(temp < min) min = temp;
+        if(temp > max) max = temp;
+    }
+    for(int i = 0; i < pixelCount; i ++) {
+        unsigned int temp;
+        if(pixelBits == 8) temp = ptr_char[i];
+        if(pixelBits == 16) temp = ptr_short[i];
+        if(pixelBits == 8) {
+            ptr_char[i] = (temp-min)*1.0/(max-min)*255;
+        } else if(pixelBits == 16) {
+            ptr_short[i] = (temp-min)*1.0/(max-min)*65535;
+        }
+    }
+}
+
 GLuint loadTexture(const std::string filename, GLuint w, GLuint h, GLuint d, GLuint b)
 {
     GLuint tex;
     FILE *fp;
     size_t size = w * h * d * (b/8);
-    GLubyte *data = new GLubyte[size];			  // 8bit
+    GLubyte *data = new GLubyte[size];
     if (!(fp = fopen(filename.c_str(), "rb")))
     {
         cout << "Error: opening .raw file failed" << endl;
@@ -161,9 +185,11 @@ GLuint loadTexture(const std::string filename, GLuint w, GLuint h, GLuint d, GLu
     // pixel transfer happens here from client to OpenGL server
     glPixelStorei(GL_UNPACK_ALIGNMENT,1);
     if(b == 8) {
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE,data);
+        normValue(data, w*h*d, 8);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_R8, w, h, d, 0, GL_RED, GL_UNSIGNED_BYTE,data);
     } else if (b == 16){
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, w, h, d, 0, GL_RED, GL_UNSIGNED_SHORT,data);
+        normValue(data, w*h*d, 16);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_R16, w, h, d, 0, GL_RED, GL_UNSIGNED_SHORT,data);
     } else {
         cout << "Unsupported pixel bytes." << endl;
         exit(1);

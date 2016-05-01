@@ -13,10 +13,10 @@ void main()
     float value;
     vec4 colorSample;
 
-    value = texture(VolumeTex, Texcoord).x;
+    value = texture(VolumeTex, Texcoord).r;
     colorSample = texture(TransferTex, value);
-    if(value > threshold) {
-        fColor = vec4(colorSample.r, colorSample.g, colorSample.b, colorSample.a+0.1);
+    if(value > 0.1) {
+        fColor = vec4(colorSample.r, colorSample.g, colorSample.b, 0.1);
     } else {
         discard;
     }
