@@ -19,6 +19,26 @@ using namespace std;
 using namespace glm;
 
 
+typedef struct {
+    char op; // r:(x, y, z), s, t
+    float x;
+    float y;
+    float z;
+} Operation;
+
+typedef struct {
+    std::string filepath;
+    std::string transfuncpath;
+    std::vector<Operation> operations;
+    bool hasView;
+    float camPosition[3];
+    float focalPoint[3];
+    float viewUp[3];
+} SceneConfig;
+
+// Global Variables
+SceneConfig config;
+
 vector<GLuint> VAOs;
 vector<GLuint> VAO_Sizes;
 vector<glm::mat4> Models;
@@ -34,14 +54,14 @@ glm::vec3 eye_default, center_default, up_default;
 GLuint tffTexObj;
 GLuint volTexObj;
 
-GLuint initTFF1DTex(const char* filename)
+GLuint initTFF1DTex(const std::string filename)
 {
     // read in the user defined data of transfer function
     ifstream inFile(filename, ifstream::in);
-        if (!inFile)
+    if (!inFile)
     {
-	cerr << "Error openning file: " << filename << endl;
-	exit(EXIT_FAILURE);
+        cerr << "Error openning file: " << filename << endl;
+        exit(EXIT_FAILURE);
     }
     
     const int MAX_CNT = 10000;
@@ -49,17 +69,17 @@ GLuint initTFF1DTex(const char* filename)
     inFile.read(reinterpret_cast<char *>(tff), MAX_CNT);
     if (inFile.eof())
     {
-	size_t bytecnt = inFile.gcount();
-	*(tff + bytecnt) = '\0';
-	cout << "bytecnt " << bytecnt << endl;
+        size_t bytecnt = inFile.gcount();
+        *(tff + bytecnt) = '\0';
+        cout << "bytecnt " << bytecnt << endl;
     }
     else if(inFile.fail())
     {
-	cout << filename << "read failed " << endl;
+        cout << filename << "read failed " << endl;
     }
     else
     {
-	cout << filename << "is too large" << endl;
+        cout << filename << "is too large" << endl;
     }    
     GLuint tff1DTex;
     glGenTextures(1, &tff1DTex);
@@ -68,18 +88,18 @@ GLuint initTFF1DTex(const char* filename)
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, tff);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 512, 0, GL_RGBA, GL_UNSIGNED_BYTE, tff);
     free(tff);    
     return tff1DTex;
 }
 
-GLuint loadTexture(const char* filename, GLuint w, GLuint h, GLuint d)
+GLuint loadTexture(const std::string filename, GLuint w, GLuint h, GLuint d)
 {
     GLuint tex;
     FILE *fp;
     size_t size = w * h * d;
     GLubyte *data = new GLubyte[size];			  // 8bit
-    if (!(fp = fopen(filename, "rb")))
+    if (!(fp = fopen(filename.c_str(), "rb")))
     {
         cout << "Error: opening .raw file failed" << endl;
         exit(EXIT_FAILURE);
@@ -165,6 +185,20 @@ void initSlice(GLfloat z)
 
     // Apply transformation
     glm::mat4 m = glm::mat4(1.0f);
+    for(int i = config.operations.size()-1; i >= 0; i --) {
+        Operation o = config.operations[i];
+        if(o.op == 's') {
+            m = glm::scale(m, glm::vec3(o.x, o.y, o.z));
+        } else if(o.op == 't') {
+            m = glm::translate(m, glm::vec3(o.x, o.y, o.z));
+        } else if(o.op == 'x') {
+            m = glm::rotate(m, glm::radians(o.x), glm::vec3(1.0f, 0.0f, 0.0f));
+        } else if(o.op == 'y') {
+            m = glm::rotate(m, glm::radians(o.y), glm::vec3(0.0f, 1.0f, 0.0f));
+        } else if(o.op == 'z') {
+            m = glm::rotate(m, glm::radians(o.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        }
+    }
     Models.push_back(m);
 }
 
@@ -182,8 +216,8 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Load Texture
     ////////////////////////////////////////////////////////////////////
-    tffTexObj = initTFF1DTex("./tff.dat");
-    volTexObj = loadTexture("./head256.raw", 256, 256, 225);
+    tffTexObj = initTFF1DTex(config.transfuncpath);
+    volTexObj = loadTexture(config.filepath, 256, 256, 225);
 
     //cout << tffTexObj << ", " << volTexObj << endl;
 
@@ -193,9 +227,15 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     p = glm::perspective(glm::radians(45.0f), 1.0f, 0.5f, 100.0f);
 
-    eye_default = eye = glm::vec3(0,0,5);
-    center_default = center = glm::vec3(0, 0, 0);
-    up_default = up = glm::vec3(0, 1, 0);
+    if(config.hasView == true) {
+        eye_default = eye = vec3(config.camPosition[0], config.camPosition[1], config.camPosition[2]);
+        center_default = center = vec3(config.focalPoint[0], config.focalPoint[1], config.focalPoint[2]);
+        up_default = up = vec3(config.viewUp[0], config.viewUp[1], config.viewUp[2]);
+    } else {
+        eye_default = eye = glm::vec3(0,0,5);
+        center_default = center = glm::vec3(0, 0, 0);
+        up_default = up = glm::vec3(0, 1, 0);
+    }
 
     v = glm::lookAt(eye, center, up);
 
@@ -395,17 +435,65 @@ void Reshape(int w, int h) {
     glutPostRedisplay();
 }
 
+void loadConfig(const char* fileName, SceneConfig &config) {
+    std::ifstream infile(fileName);
+    if(!infile.is_open()){
+        std::cerr << "Configure file not exits." << std::endl;
+        exit(0);
+    }
+    string word;
+    bool first = true;
+    while (infile >> word)
+    {
+        if(word == "obj") {
+            infile >> config.filepath;
+        } else if (word == "view") {
+            config.hasView = true;
+            float cam[3], focal[3], up[3];
+            infile >> word >> config.camPosition[0] >> config.camPosition[1] >> config.camPosition[2]
+                   >> word >> config.focalPoint[0] >> config.focalPoint[1] >> config.focalPoint[2]
+                   >> word >> config.viewUp[0] >> config.viewUp[1] >> config.viewUp[2];
+        } else if (word == "transfunc") {
+            infile >> config.transfuncpath;
+        }
+        else {
+            Operation o;
+            if(word == "rx") {
+                o.op = 'x';
+                infile >> o.x;
+            }
+            else if(word == "ry") {
+                o.op = 'y';
+                infile >> o.y;
+            }
+            else if(word == "rz") {
+                o.op = 'z';
+                infile >> o.z;
+            }
+            else if(word == "s") {
+                o.op = 's';
+                infile >> o.x >> o.y >> o.z;
+            }
+            else if(word == "t") {
+                o.op = 't';
+                infile >> o.x >> o.y >> o.z;
+            }
+            config.operations.push_back(o);
+        }
+    }
+}
+
+
 int main(int argc, char* argv[])
 {
     // Parse arguments
-    //if(argc != 3 || strcmp(argv[1], "-c")) {
-        //std::cerr << "Usage: " << argv[0] << " -c CONFIG_FILE" << std::endl;
-        //exit(0);
-    //}
+    if(argc != 3 || strcmp(argv[1], "-c")) {
+        std::cerr << "Usage: " << argv[0] << " -c CONFIG_FILE" << std::endl;
+        exit(0);
+    }
 
     // Load configure file
-    //vector<Task> tasks;
-    //loadConfig(argv[2], tasks);
+    loadConfig(argv[2], config);
 
     // Init OpenGL
     glutInit( &argc, argv );
