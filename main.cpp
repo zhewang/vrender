@@ -64,8 +64,8 @@ glm::mat4 p; // Projection matrix
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
 
-float zx_rotate = 0;
-float qe_rotate = 0;
+float zx_rotation = 0;
+float qe_rotation = 180;
 float cv_rotation = 0;
 
 GLuint tffTexObj;
@@ -355,8 +355,8 @@ void renderDisplay()
     glUniform1f(threshLoc, thresh);
 
     glm::vec3 right = glm::normalize(glm::cross(eye-center, up));
-    v = glm::rotate(glm::mat4(1.0f), glm::radians(zx_rotate), up);
-    v = glm::rotate(v, glm::radians(qe_rotate), right);
+    v = glm::rotate(glm::mat4(1.0f), glm::radians(zx_rotation), up);
+    v = glm::rotate(v, glm::radians(qe_rotation), right);
     v = glm::rotate(v, glm::radians(cv_rotation), glm::normalize(center-eye));
     v = glm::scale(v, glm::vec3(1.5f, 1.5f, 1.5f));
     glProgramUniformMatrix4fv(uniformShader, texRotateLoc, 1, false,  glm::value_ptr(v));
@@ -429,7 +429,7 @@ void moveCamera(char cmd)
                 //vec3 gaze = center - eye;
                 //gaze = glm::rotate(gaze, glm::radians(-1.0f), right);
                 //eye = center - gaze;
-                qe_rotate -= rotate_step;
+                qe_rotation -= rotate_step;
                 break;
             }
         case 'e':
@@ -437,21 +437,21 @@ void moveCamera(char cmd)
                 //vec3 gaze = center - eye;
                 //gaze = glm::rotate(gaze, glm::radians(1.0f), right);
                 //eye = center - gaze;
-                qe_rotate += rotate_step;
+                qe_rotation += rotate_step;
                 break;
             }
         case 'z':
             {
                 //eye = glm::rotate(eye, glm::radians(1.0f), up);
                 //center = glm::rotate(center, glm::radians(1.0f), up);
-                zx_rotate -= rotate_step;
+                zx_rotation -= rotate_step;
                 break;
             }
         case 'x':
             {
                 //eye = glm::rotate(eye, glm::radians(-1.0f), up);
                 //center = glm::rotate(center, glm::radians(-1.0f), up);
-                zx_rotate += rotate_step;
+                zx_rotation += rotate_step;
                 break;
             }
         case 'c':
@@ -501,8 +501,8 @@ void keyboardEvent(unsigned char key, int x, int y)
             eye = eye_default;
             center = center_default;
             up = up_default;
-            zx_rotate = 0;
-            qe_rotate = 0;
+            zx_rotation = 0;
+            qe_rotation = 180;
             cv_rotation = 0;
             break;
         case 27: exit(0); break;
@@ -575,14 +575,18 @@ void glui_cb(int control) {
     {
         case GLUI_UPDATE_VIEW:
         {
-            glm::mat4 m = glm::mat4(1.0f);
+            //glm::mat4 m = glm::mat4(1.0f);
             eye = gluiEye;
-            m = glm::rotate(m, glm::radians(gluiRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-            m = glm::rotate(m, glm::radians(gluiRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-            m = glm::rotate(m, glm::radians(gluiRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-            for(int i =0; i < Models.size(); i++) {
-                Models[i] = m;
-            }
+            //m = glm::rotate(m, glm::radians(gluiRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+            //m = glm::rotate(m, glm::radians(gluiRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+            //m = glm::rotate(m, glm::radians(gluiRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+            
+            qe_rotation = 180+gluiRotation.x;
+            zx_rotation = gluiRotation.y;
+            cv_rotation = gluiRotation.z;
+            //for(int i =0; i < Models.size(); i++) {
+                //Models[i] = m;
+            //}
             break;
         }
         case GLUI_UPDATE_COLORMAP:
