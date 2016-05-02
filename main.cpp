@@ -75,7 +75,7 @@ GLfloat thresh = 0.1f;
 
 //GLUI variables
 int main_window;
-int gluiSliceCount = 100;
+int gluiSliceCount = 1000;
 vec3 gluiEye;
 vec3 gluiRotation;
 int lastColormapId;
@@ -275,7 +275,7 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Generate Slices
     ////////////////////////////////////////////////////////////////////
-    int sliceCount = 100;
+    int sliceCount = 1000;
     float sliceStep = 2.0f/(sliceCount-1);
     for(int i = 0; i < sliceCount; i ++) {
         initSlice(-1.0+i*sliceStep); // [-1,1]
