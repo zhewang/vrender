@@ -64,6 +64,10 @@ glm::mat4 p; // Projection matrix
 glm::vec3 eye, center, up;
 glm::vec3 eye_default, center_default, up_default;
 
+float zx_rotate = 0;
+float qe_rotate = 0;
+float cv_rotation = 0;
+
 GLuint tffTexObj;
 GLuint volTexObj;
 
@@ -115,7 +119,7 @@ GLuint initTFF1DTex(const std::string filename, int tff_size)
     GLuint tff1DTex;
     glGenTextures(1, &tff1DTex);
     glBindTexture(GL_TEXTURE_1D, tff1DTex);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -179,9 +183,9 @@ GLuint loadTexture(const std::string filename, GLuint w, GLuint h, GLuint d, GLu
     glBindTexture(GL_TEXTURE_3D, tex);
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);	
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
     // pixel transfer happens here from client to OpenGL server
     glPixelStorei(GL_UNPACK_ALIGNMENT,1);
     if(b == 8) {
@@ -340,6 +344,7 @@ void renderDisplay()
     GLint modelLoc = glGetUniformLocation(uniformShader, "Model");
     GLint viewLoc = glGetUniformLocation(uniformShader, "View");
     GLint projectLoc = glGetUniformLocation(uniformShader, "Project");
+    GLint texRotateLoc = glGetUniformLocation(uniformShader, "texRotate");
 
     // Send View and Projection matices to shader
     v = glm::lookAt(eye, center, up);
@@ -348,6 +353,12 @@ void renderDisplay()
 
     GLint threshLoc = glGetUniformLocation(uniformShader, "threshold");
     glUniform1f(threshLoc, thresh);
+
+    glm::vec3 right = glm::normalize(glm::cross(eye-center, up));
+    v = glm::rotate(glm::mat4(1.0f), glm::radians(zx_rotate), up);
+    v = glm::rotate(v, glm::radians(qe_rotate), right);
+    v = glm::rotate(v, glm::radians(cv_rotation), glm::normalize(center-eye));
+    glProgramUniformMatrix4fv(uniformShader, texRotateLoc, 1, false,  glm::value_ptr(v));
 
     for(int i = 0; i < VAOs.size(); i ++) {
         glProgramUniformMatrix4fv(uniformShader, modelLoc, 1, false,  glm::value_ptr(Models[i]));
@@ -367,6 +378,7 @@ void moveCamera(char cmd)
 {
     glm::vec3 right = glm::normalize(glm::cross(eye-center, up));
     float speed = 0.1f;
+    float rotate_step = 2.0;
     switch(cmd)
     {
         case 'w':
@@ -413,46 +425,44 @@ void moveCamera(char cmd)
             }
         case 'q':
             {
-                vec3 gaze = center - eye;
-                gaze = glm::rotate(gaze, glm::radians(-1.0f), right);
-                //center = gaze + eye;
-                eye = center - gaze;
+                //vec3 gaze = center - eye;
+                //gaze = glm::rotate(gaze, glm::radians(-1.0f), right);
+                //eye = center - gaze;
+                qe_rotate -= rotate_step;
                 break;
             }
         case 'e':
             {
-                vec3 gaze = center - eye;
-                gaze = glm::rotate(gaze, glm::radians(1.0f), right);
-                //center = gaze + eye;
-                eye = center - gaze;
+                //vec3 gaze = center - eye;
+                //gaze = glm::rotate(gaze, glm::radians(1.0f), right);
+                //eye = center - gaze;
+                qe_rotate += rotate_step;
                 break;
             }
         case 'z':
             {
-                //vec3 gaze = center - eye;
-                //gaze = glm::rotate(gaze, glm::radians(-1.0f), up);
-                //eye = center - gaze;
-                eye = glm::rotate(eye, glm::radians(1.0f), up);
-                center = glm::rotate(center, glm::radians(1.0f), up);
+                //eye = glm::rotate(eye, glm::radians(1.0f), up);
+                //center = glm::rotate(center, glm::radians(1.0f), up);
+                zx_rotate -= rotate_step;
                 break;
             }
         case 'x':
             {
-                //vec3 gaze = center - eye;
-                //gaze = glm::rotate(gaze, glm::radians(1.0f), up);
-                //eye = center - gaze;
-                eye = glm::rotate(eye, glm::radians(-1.0f), up);
-                center = glm::rotate(center, glm::radians(-1.0f), up);
+                //eye = glm::rotate(eye, glm::radians(-1.0f), up);
+                //center = glm::rotate(center, glm::radians(-1.0f), up);
+                zx_rotate += rotate_step;
                 break;
             }
         case 'c':
             {
-                up = glm::rotate(up, glm::radians(1.0f), glm::normalize(center-eye));
+                //up = glm::rotate(up, glm::radians(1.0f), glm::normalize(center-eye));
+                cv_rotation += rotate_step;
                 break;
             }
         case 'v':
             {
-                up = glm::rotate(up, glm::radians(-1.0f), glm::normalize(center-eye));
+                //up = glm::rotate(up, glm::radians(-1.0f), glm::normalize(center-eye));
+                cv_rotation -= rotate_step;
                 break;
             }
         case 'j':
@@ -490,6 +500,8 @@ void keyboardEvent(unsigned char key, int x, int y)
             eye = eye_default;
             center = center_default;
             up = up_default;
+            zx_rotate = 0;
+            qe_rotate = 0;
             break;
         case 27: exit(0); break;
         default:
