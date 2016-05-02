@@ -75,7 +75,7 @@ GLfloat thresh = 0.1f;
 
 //GLUI variables
 int main_window;
-int gluiSliceCount = 1000;
+int gluiSliceCount = 500;
 vec3 gluiEye;
 vec3 gluiRotation;
 int lastColormapId;
@@ -275,7 +275,7 @@ void init() {
     ////////////////////////////////////////////////////////////////////
     // Generate Slices
     ////////////////////////////////////////////////////////////////////
-    int sliceCount = 1000;
+    int sliceCount = 500;
     float sliceStep = 2.0f/(sliceCount-1);
     for(int i = 0; i < sliceCount; i ++) {
         initSlice(-1.0+i*sliceStep); // [-1,1]
@@ -358,6 +358,7 @@ void renderDisplay()
     v = glm::rotate(glm::mat4(1.0f), glm::radians(zx_rotate), up);
     v = glm::rotate(v, glm::radians(qe_rotate), right);
     v = glm::rotate(v, glm::radians(cv_rotation), glm::normalize(center-eye));
+    v = glm::scale(v, glm::vec3(1.5f, 1.5f, 1.5f));
     glProgramUniformMatrix4fv(uniformShader, texRotateLoc, 1, false,  glm::value_ptr(v));
 
     for(int i = 0; i < VAOs.size(); i ++) {
@@ -502,6 +503,7 @@ void keyboardEvent(unsigned char key, int x, int y)
             up = up_default;
             zx_rotate = 0;
             qe_rotate = 0;
+            cv_rotation = 0;
             break;
         case 27: exit(0); break;
         default:

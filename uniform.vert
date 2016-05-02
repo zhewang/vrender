@@ -15,7 +15,7 @@ void main()
 {
     vec3 temp;
     temp = vtPos + vec3(-0.5f, -0.5f, -0.5f);
-    temp = mat3(texRotate)*temp;
+    temp = mat3(texRotate)*mat3(Model)*temp;
     Texcoord = temp+ vec3(0.5f, 0.5f, 0.5f);
     gl_Position = Project*View*Model*vec4(vPos, 1.0);
 }
