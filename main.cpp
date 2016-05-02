@@ -12,6 +12,7 @@
 
 #include "vgl.h"
 #include "LoadShaders.h"
+#include <GL/glui.h>
 
 #define GLM_FORCE_RADIANS
 
@@ -38,6 +39,16 @@ typedef struct {
     float viewUp[3];
 } SceneConfig;
 
+//GLUI const
+const char* TransFuncNames[7] = {"bone.dat", "colorcube.dat",
+                                 "copper.dat", "hsv.dat",
+                                 "jet.dat", "tff.dat",
+                                 "vga.dat"};
+const GLuint GLUI_UPDATE_VIEW = 1;
+const GLuint GLUI_UPDATE_COLORMAP = 2;
+const GLuint GLUI_UPDATE_THRESH = 3;
+const GLuint GLUI_UPDATE_SLICE = 4;
+
 // Global Variables
 SceneConfig config;
 
@@ -55,6 +66,24 @@ glm::vec3 eye_default, center_default, up_default;
 
 GLuint tffTexObj;
 GLuint volTexObj;
+
+GLfloat thresh = 0.1f;
+
+//GLUI variables
+int main_window;
+int gluiSliceCount = 100;
+vec3 gluiEye;
+vec3 gluiRotation;
+int lastColormapId;
+int gluiColormapId = 0;
+float gluiThreshold = 0.1f;
+
+void myGlutIdle( void )
+{
+      if ( glutGetWindow() != main_window )
+            glutSetWindow(main_window);
+      glutPostRedisplay();
+}
 
 GLuint initTFF1DTex(const std::string filename, int tff_size)
 {
@@ -291,6 +320,9 @@ void renderDisplay()
     glProgramUniformMatrix4fv(uniformShader, viewLoc, 1, false,  glm::value_ptr(v));
     glProgramUniformMatrix4fv(uniformShader, projectLoc, 1, false,  glm::value_ptr(p));
 
+    GLint threshLoc = glGetUniformLocation(uniformShader, "threshold");
+    glUniform1f(threshLoc, thresh);
+
     for(int i = 0; i < VAOs.size(); i ++) {
         glProgramUniformMatrix4fv(uniformShader, modelLoc, 1, false,  glm::value_ptr(Models[i]));
 
@@ -498,6 +530,125 @@ void loadConfig(const char* fileName, SceneConfig &config) {
     }
 }
 
+void glui_cb(int control) {
+    switch(control)
+    {
+        case GLUI_UPDATE_VIEW:
+        {
+            glm::mat4 m = glm::mat4(1.0f);
+            eye = gluiEye;
+            m = glm::rotate(m, glm::radians(gluiRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+            m = glm::rotate(m, glm::radians(gluiRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+            m = glm::rotate(m, glm::radians(gluiRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+            for(int i =0; i < Models.size(); i++) {
+                Models[i] = m;
+            }
+            break;
+        }
+        case GLUI_UPDATE_COLORMAP:
+        {
+            if( config.transfuncpath.find(TransFuncNames[lastColormapId]) != std::string::npos) {
+                 int pos = config.transfuncpath.find(TransFuncNames[lastColormapId]);
+                 config.transfuncpath = config.transfuncpath.replace(pos, config.transfuncpath.length() - pos, 
+                                                                     TransFuncNames[gluiColormapId]);
+                 tffTexObj = initTFF1DTex(config.transfuncpath, config.tff_size);
+                 lastColormapId = gluiColormapId;
+
+            } else  {
+                cerr << "error occurred when updating colormap" << "\n";
+            }
+            break;
+        }
+        case GLUI_UPDATE_THRESH:
+        {
+            thresh = gluiThreshold;
+            break;
+        }
+        case GLUI_UPDATE_SLICE:
+        {
+            VAOs.clear();
+            VAO_Sizes.clear();
+            float sliceStep = 2.0f/(gluiSliceCount - 1);
+            for(int i = 0; i < gluiSliceCount; i ++) {
+                initSlice(-1.0+i*sliceStep); // [-1,1]
+            }
+            break;
+        }
+    }
+    glutPostRedisplay();
+}
+
+void setupGlui() {
+    // GLUI code
+    GLUI *glui = GLUI_Master.create_glui( "GLUI", 0, 512, 0);
+
+    glui->add_statictext("View Control");
+    glui->add_separator();
+
+    //camera ui
+    gluiEye = eye;
+    GLUI_Panel *camera_panel = glui->add_panel( "Camera" );
+    GLUI_EditText *edittext1 = glui->add_edittext_to_panel(camera_panel, "x:", GLUI_EDITTEXT_FLOAT, &gluiEye.x );
+    GLUI_EditText *edittext2 = glui->add_edittext_to_panel(camera_panel, "y:", GLUI_EDITTEXT_FLOAT, &gluiEye.y );
+    GLUI_EditText *edittext3 = glui->add_edittext_to_panel(camera_panel, "z:", GLUI_EDITTEXT_FLOAT, &gluiEye.z );
+    edittext1->set_float_limits(-1000.f, 1000.0f );
+    edittext2->set_float_limits(-1000.f, 1000.0f );
+    edittext3->set_float_limits(-1000.f, 1000.0f );
+
+    //rotation ui
+    for(int i = config.operations.size()-1; i >= 0; i --) {
+        Operation o = config.operations[i];
+        if(o.op == 'x') {
+            gluiRotation.x = o.x;
+        } else if(o.op == 'y') {
+            gluiRotation.x = o.y;
+        } else if(o.op == 'z') {
+            gluiRotation.z = o.z;
+        }
+    }
+    GLUI_Panel *rotation_panel = glui->add_panel( "Rotation" );
+    GLUI_EditText *edittext4 = glui->add_edittext_to_panel(rotation_panel, "x:", GLUI_EDITTEXT_FLOAT, &gluiRotation.x );
+    GLUI_EditText *edittext5 = glui->add_edittext_to_panel(rotation_panel, "y:", GLUI_EDITTEXT_FLOAT, &gluiRotation.y );
+    GLUI_EditText *edittext6 = glui->add_edittext_to_panel(rotation_panel, "z:", GLUI_EDITTEXT_FLOAT, &gluiRotation.z );
+    edittext4->set_float_limits(0.0f, 360.0f );
+    edittext5->set_float_limits(0.0f, 360.0f );
+    edittext6->set_float_limits(0.0f, 360.0f );
+
+    glui->add_button( "OK", GLUI_UPDATE_VIEW, (GLUI_Update_CB)glui_cb);
+
+    glui->add_column(true);
+
+    glui->add_statictext("Render Control");
+    glui->add_separator();
+
+    //colormap ui
+    GLUI_Listbox *listbox = glui->add_listbox("Colormap: ", &gluiColormapId, GLUI_UPDATE_COLORMAP, (GLUI_Update_CB)glui_cb);
+    for(int i = 0; i < sizeof(TransFuncNames)/sizeof(*TransFuncNames); i ++) {
+        listbox->add_item(i, TransFuncNames[i]);
+        if(config.transfuncpath.find(TransFuncNames[i])  != std::string::npos) {
+            lastColormapId = i;
+        }
+    }
+    listbox->set_int_val(lastColormapId);// set default colormap
+
+    // threshold ui
+    GLUI_Spinner *threshold_spinner =
+    glui->add_spinner( "Threshold: ", GLUI_SPINNER_FLOAT, &gluiThreshold, GLUI_UPDATE_THRESH, (GLUI_Update_CB)glui_cb);
+    threshold_spinner->set_speed(2);
+    threshold_spinner->set_float_limits(0.0f, 1.0f);
+
+    // slice ui
+    GLUI_EditText *etSlice = glui->add_edittext("# of slice: ", GLUI_EDITTEXT_INT,
+                                                &gluiSliceCount, GLUI_UPDATE_SLICE,
+                                                (GLUI_Update_CB)glui_cb);
+    glui->add_statictext( "   " );
+    glui->add_statictext( "   " );
+    glui->add_statictext( "   " );
+    glui->add_button( "Quit", 0,(GLUI_Update_CB)exit );
+
+    glui->set_main_gfx_window( main_window );
+    GLUI_Master.set_glutIdleFunc( myGlutIdle );
+}
 
 int main(int argc, char* argv[])
 {
@@ -515,7 +666,7 @@ int main(int argc, char* argv[])
     glutInitDisplayMode( GLUT_3_2_CORE_PROFILE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize( 512, 512 );
 
-    glutCreateWindow( argv[0] );
+    main_window =  glutCreateWindow( argv[0] );
 
     glewExperimental = GL_TRUE;	// added for glew to work!
 
@@ -539,6 +690,7 @@ int main(int argc, char* argv[])
     init();
     glutDisplayFunc(renderDisplay);
     glutKeyboardFunc(keyboardEvent);
+    setupGlui();
 
     glutMainLoop();
 

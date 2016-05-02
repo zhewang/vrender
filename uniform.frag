@@ -2,6 +2,7 @@
 
 uniform sampler3D VolumeTex;
 uniform sampler1D TransferTex;
+uniform float threshold;
 
 in vec3 Texcoord;
 
@@ -14,7 +15,7 @@ void main()
 
     value = texture(VolumeTex, Texcoord).x;
     colorSample = texture(TransferTex, value);
-    if(value > 0.1) {
+    if(value > threshold) {
         fColor = vec4(colorSample.r, colorSample.g, colorSample.b, colorSample.a+0.1);
     } else {
         discard;
